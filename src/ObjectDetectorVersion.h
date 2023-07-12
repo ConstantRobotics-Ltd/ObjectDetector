@@ -1,0 +1,7 @@
+#pragma once
+
+#define VSOURCE_MAJOR_VERSION 1
+#define VSOURCE_MINOR_VERSION 0
+#define VSOURCE_PATCH_VERSION 0
+
+#define VSOURCE_VERSION "1.0.0"
