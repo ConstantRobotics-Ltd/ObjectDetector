@@ -128,6 +128,7 @@ void cr::detector::ObjectDetectorParams::encode(
     data[pos] = data[pos] | (mask->scaleFactor ? (uint8_t)2 : (uint8_t)0);
     data[pos] = data[pos] | (mask->numThreads ? (uint8_t)1 : (uint8_t)0);
     pos += 1;
+    data[pos] = 0;
     data[pos] = data[pos] | (mask->processingTimeMks ? (uint8_t)128 : (uint8_t)0);
     data[pos] = data[pos] | (mask->type ? (uint8_t)64 : (uint8_t)0);
     data[pos] = data[pos] | (mask->enable ? (uint8_t)32 : (uint8_t)0);
@@ -454,7 +455,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
     if ((data[5] & (uint8_t)2) == (uint8_t)2)
     {
         int numObjects = 0;
-        memcpy(&numObjects, &data[pos], 4);
+        memcpy(&numObjects, &data[pos], 4); pos += 4;
         objects.clear();
         for (int i = 0; i < numObjects; ++i)
         {

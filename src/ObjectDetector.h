@@ -259,7 +259,7 @@ enum class ObjectDetectorParam
 enum class ObjectDetectorCommand
 {
     /// Reset.
-    RESTART = 1,
+    RESET = 1,
     /// Enable.
     ON,
     /// Disable.

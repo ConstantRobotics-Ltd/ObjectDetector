@@ -1,10 +1,10 @@
 #include <iostream>
-#include "VSource.h"
+#include "ObjectDetector.h"
 
 
 
 /// Link namesapces.
-using namespace cr::video;
+using namespace cr::detector;
 using namespace std;
 
 
@@ -31,7 +31,7 @@ int main(void)
 {
     cout << "#####################################" << endl;
     cout << "#                                   #" << endl;
-    cout << "# VSourceParams test                #" << endl;
+    cout << "# ObjectDetector test               #" << endl;
     cout << "#                                   #" << endl;
     cout << "#####################################" << endl;
     cout << endl;
@@ -80,97 +80,142 @@ int main(void)
 bool copyTest()
 {
     // Prepare random params.
-    VSourceParams in;
-    in.source = "alsfghljb";
-    in.fourcc = "skdfjhvk";
-    in.logLevel = rand() % 255;
-    in.cycleTimeMks = rand() % 255;
-    in.exposure = rand() % 255;
-    in.exposureMode = rand() % 255;
-    in.gainMode = rand() % 255;
-    in.gain = rand() % 255;
-    in.focusMode = rand() % 255;
-    in.focusPos = rand() % 255;
-    in.fps = rand() % 255;
-    in.width = rand() % 255;
-    in.height = rand() % 255;
-    in.isOpen = true;
+    ObjectDetectorParams in;
+    in.logMode = rand() % 255;
+    in.frameBufferSize = rand() % 255;
+    in.minObjectWidth = rand() % 255;
+    in.maxObjectWidth = rand() % 255;
+    in.minObjectHeight = rand() % 255;
+    in.maxObjectHeight = rand() % 255;
+    in.minXSpeed = rand() % 255;
+    in.maxXSpeed = rand() % 255;
+    in.minYSpeed = rand() % 255;
+    in.maxYSpeed = rand() % 255;
+    in.xDetectionCriteria = rand() % 255;
+    in.yDetectionCriteria = rand() % 255;
+    in.resetCriteria = rand() % 255;
+    in.sensitivity = rand() % 255;
+    in.scaleFactor = rand() % 255;
+    in.numThreads = rand() % 255;
+    in.processingTimeMks = rand() % 255;
+    in.type = rand() % 255;
+    in.enable = false;
     in.custom1 = rand() % 255;
     in.custom2 = rand() % 255;
     in.custom3 = rand() % 255;
+    in.objects.clear();
+    for (int i = 0; i < 5; ++i)
+    {
+        Object obj;
+        obj.id = rand() % 255;
+        obj.type = rand() % 255;
+        obj.width = rand() % 255;
+        obj.height = rand() % 255;
+        obj.x = rand() % 255;
+        obj.y = rand() % 255;
+        obj.vX = rand() % 255;
+        obj.vY = rand() % 255;
+        obj.p = rand() % 255;
+        in.objects.push_back(obj);
+    }
 
     // Copy params.
-    VSourceParams out = in;
+    ObjectDetectorParams out = in;
 
     // Compare params.
-    if (in.source != out.source)
+    if (in.logMode != out.logMode)
     {
-        cout << "in.source" << endl;
+        cout << "in.logMode" << endl;
         return false;
     }
-    if (in.fourcc != out.fourcc)
+    if (in.frameBufferSize != out.frameBufferSize)
     {
-        cout << "in.fourcc" << endl;
+        cout << "in.frameBufferSize" << endl;
         return false;
     }
-    if (in.logLevel != out.logLevel)
+    if (in.minObjectWidth != out.minObjectWidth)
     {
-        cout << "in.logLevel" << endl;
+        cout << "in.minObjectWidth" << endl;
         return false;
     }
-    if (in.cycleTimeMks != out.cycleTimeMks)
+    if (in.maxObjectWidth != out.maxObjectWidth)
     {
-        cout << "in.cycleTimeMks" << endl;
+        cout << "in.maxObjectWidth" << endl;
         return false;
     }
-    if (in.exposure != out.exposure)
+    if (in.minObjectHeight != out.minObjectHeight)
     {
-        cout << "in.exposure" << endl;
+        cout << "in.minObjectHeight" << endl;
         return false;
     }
-    if (in.exposureMode != out.exposureMode)
+    if (in.maxObjectHeight != out.maxObjectHeight)
     {
-        cout << "in.exposureMode" << endl;
+        cout << "in.maxObjectHeight" << endl;
         return false;
     }
-    if (in.gainMode != out.gainMode)
+    if (in.minXSpeed != out.minXSpeed)
     {
-        cout << "in.gainMode" << endl;
+        cout << "in.minXSpeed" << endl;
         return false;
     }
-    if (in.gain != out.gain)
+    if (in.maxXSpeed != out.maxXSpeed)
     {
-        cout << "in.gain" << endl;
+        cout << "in.maxXSpeed" << endl;
         return false;
     }
-    if (in.focusMode != out.focusMode)
+    if (in.minYSpeed != out.minYSpeed)
     {
-        cout << "in.focusMode" << endl;
+        cout << "in.minYSpeed" << endl;
         return false;
     }
-    if (in.focusPos != out.focusPos)
+    if (in.maxYSpeed != out.maxYSpeed)
     {
-        cout << "in.focusPos" << endl;
+        cout << "in.maxYSpeed" << endl;
         return false;
     }
-    if (in.fps != out.fps)
+    if (in.xDetectionCriteria != out.xDetectionCriteria)
     {
-        cout << "in.fps" << endl;
+        cout << "in.xDetectionCriteria" << endl;
         return false;
     }
-    if (in.width != out.width)
+    if (in.yDetectionCriteria != out.yDetectionCriteria)
     {
-        cout << "in.width" << endl;
+        cout << "in.yDetectionCriteria" << endl;
         return false;
     }
-    if (in.height != out.height)
+    if (in.resetCriteria != out.resetCriteria)
     {
-        cout << "in.height" << endl;
+        cout << "in.resetCriteria" << endl;
         return false;
     }
-    if (in.isOpen != out.isOpen)
+    if (in.sensitivity != out.sensitivity)
     {
-        cout << "in.isOpen" << endl;
+        cout << "in.sensitivity" << endl;
+        return false;
+    }
+    if (in.scaleFactor != out.scaleFactor)
+    {
+        cout << "in.scaleFactor" << endl;
+        return false;
+    }
+    if (in.numThreads != out.numThreads)
+    {
+        cout << "in.numThreads" << endl;
+        return false;
+    }
+    if (in.processingTimeMks != out.processingTimeMks)
+    {
+        cout << "in.processingTimeMks" << endl;
+        return false;
+    }
+    if (in.type != out.type)
+    {
+        cout << "in.type" << endl;
+        return false;
+    }
+    if (in.enable != out.enable)
+    {
+        cout << "in.enable" << endl;
         return false;
     }
     if (in.custom1 != out.custom1)
@@ -187,6 +232,59 @@ bool copyTest()
     {
         cout << "in.custom3" << endl;
         return false;
+    }
+    if (in.objects.size() != out.objects.size())
+    {
+        cout << "in.objects.size()" << endl;
+        return false;
+    }
+    for (int i = 0; i < in.objects.size(); ++i)
+    {
+        if (in.objects[i].id != out.objects[i].id)
+        {
+            cout << "in.objects[" << i << "].id" << endl;
+            return false;
+        }
+        if (in.objects[i].type != out.objects[i].type)
+        {
+            cout << "in.objects[" << i << "].type" << endl;
+            return false;
+        }
+        if (in.objects[i].width != out.objects[i].width)
+        {
+            cout << "in.objects[" << i << "].width" << endl;
+            return false;
+        }
+        if (in.objects[i].height != out.objects[i].height)
+        {
+            cout << "in.objects[" << i << "].height" << endl;
+            return false;
+        }
+        if (in.objects[i].x != out.objects[i].x)
+        {
+            cout << "in.objects[" << i << "].x" << endl;
+            return false;
+        }
+        if (in.objects[i].y != out.objects[i].y)
+        {
+            cout << "in.objects[" << i << "].y" << endl;
+            return false;
+        }
+        if (in.objects[i].vX != out.objects[i].vX)
+        {
+            cout << "in.objects[" << i << "].vX" << endl;
+            return false;
+        }
+        if (in.objects[i].vY != out.objects[i].vY)
+        {
+            cout << "in.objects[" << i << "].vY" << endl;
+            return false;
+        }
+        if (in.objects[i].p != out.objects[i].p)
+        {
+            cout << "in.objects[" << i << "].p" << endl;
+            return false;
+        }
     }
 
     return true;
@@ -198,24 +296,44 @@ bool copyTest()
 bool encodeDecodeTest()
 {
     // Prepare random params.
-    VSourceParams in;
-    in.source = "source";
-    in.fourcc = "skdfjhvk";
-    in.logLevel = rand() % 255;
-    in.cycleTimeMks = rand() % 255;
-    in.exposure = rand() % 255;
-    in.exposureMode = rand() % 255;
-    in.gainMode = rand() % 255;
-    in.gain = rand() % 255;
-    in.focusMode = rand() % 255;
-    in.focusPos = rand() % 255;
-    in.fps = rand() % 255;
-    in.width = rand() % 255;
-    in.height = rand() % 255;
-    in.isOpen = true;
+    ObjectDetectorParams in;
+    in.logMode = rand() % 255;
+    in.frameBufferSize = rand() % 255;
+    in.minObjectWidth = rand() % 255;
+    in.maxObjectWidth = rand() % 255;
+    in.minObjectHeight = rand() % 255;
+    in.maxObjectHeight = rand() % 255;
+    in.minXSpeed = rand() % 255;
+    in.maxXSpeed = rand() % 255;
+    in.minYSpeed = rand() % 255;
+    in.maxYSpeed = rand() % 255;
+    in.xDetectionCriteria = rand() % 255;
+    in.yDetectionCriteria = rand() % 255;
+    in.resetCriteria = rand() % 255;
+    in.sensitivity = rand() % 255;
+    in.scaleFactor = rand() % 255;
+    in.numThreads = rand() % 255;
+    in.processingTimeMks = rand() % 255;
+    in.type = rand() % 255;
+    in.enable = false;
     in.custom1 = rand() % 255;
     in.custom2 = rand() % 255;
     in.custom3 = rand() % 255;
+    in.objects.clear();
+    for (int i = 0; i < 5; ++i)
+    {
+        Object obj;
+        obj.id = rand() % 255;
+        obj.type = rand() % 255;
+        obj.width = rand() % 255;
+        obj.height = rand() % 255;
+        obj.x = rand() % 255;
+        obj.y = rand() % 255;
+        obj.vX = rand() % 255;
+        obj.vY = rand() % 255;
+        obj.p = rand() % 255;
+        in.objects.push_back(obj);
+    }
 
     // Encode data.
     uint8_t data[1024];
@@ -225,7 +343,7 @@ bool encodeDecodeTest()
     cout << "Encoded data size: " << size << " bytes" << endl;
 
     // Decode data.
-    VSourceParams out;
+    ObjectDetectorParams out;
     if (!out.decode(data))
     {
         cout << "Can't decode data" << endl;
@@ -233,74 +351,99 @@ bool encodeDecodeTest()
     }
 
     // Compare params.
-    if (out.source != "")
+    if (in.logMode != out.logMode)
     {
-        cout << "in.source" << endl;
+        cout << "in.logMode" << endl;
         return false;
     }
-    if (out.fourcc != "")
+    if (in.frameBufferSize != out.frameBufferSize)
     {
-        cout << "in.fourcc" << endl;
+        cout << "in.frameBufferSize" << endl;
         return false;
     }
-    if (in.logLevel != out.logLevel)
+    if (in.minObjectWidth != out.minObjectWidth)
     {
-        cout << "in.logLevel" << endl;
+        cout << "in.minObjectWidth" << endl;
         return false;
     }
-    if (in.cycleTimeMks != out.cycleTimeMks)
+    if (in.maxObjectWidth != out.maxObjectWidth)
     {
-        cout << "in.cycleTimeMks" << endl;
+        cout << "in.maxObjectWidth" << endl;
         return false;
     }
-    if (in.exposure != out.exposure)
+    if (in.minObjectHeight != out.minObjectHeight)
     {
-        cout << "in.exposure" << endl;
+        cout << "in.minObjectHeight" << endl;
         return false;
     }
-    if (in.exposureMode != out.exposureMode)
+    if (in.maxObjectHeight != out.maxObjectHeight)
     {
-        cout << "in.exposureMode" << endl;
+        cout << "in.maxObjectHeight" << endl;
         return false;
     }
-    if (in.gainMode != out.gainMode)
+    if (in.minXSpeed != out.minXSpeed)
     {
-        cout << "in.gainMode" << endl;
+        cout << "in.minXSpeed" << endl;
         return false;
     }
-    if (in.gain != out.gain)
+    if (in.maxXSpeed != out.maxXSpeed)
     {
-        cout << "in.gain" << endl;
+        cout << "in.maxXSpeed" << endl;
         return false;
     }
-    if (in.focusMode != out.focusMode)
+    if (in.minYSpeed != out.minYSpeed)
     {
-        cout << "in.focusMode" << endl;
+        cout << "in.minYSpeed" << endl;
         return false;
     }
-    if (in.focusPos != out.focusPos)
+    if (in.maxYSpeed != out.maxYSpeed)
     {
-        cout << "in.focusPos" << endl;
+        cout << "in.maxYSpeed" << endl;
         return false;
     }
-    if (in.fps != out.fps)
+    if (in.xDetectionCriteria != out.xDetectionCriteria)
     {
-        cout << "in.fps" << endl;
+        cout << "in.xDetectionCriteria" << endl;
         return false;
     }
-    if (in.width != out.width)
+    if (in.yDetectionCriteria != out.yDetectionCriteria)
     {
-        cout << "in.width" << endl;
+        cout << "in.yDetectionCriteria" << endl;
         return false;
     }
-    if (in.height != out.height)
+    if (in.resetCriteria != out.resetCriteria)
     {
-        cout << "in.height" << endl;
+        cout << "in.resetCriteria" << endl;
         return false;
     }
-    if (in.isOpen != out.isOpen)
+    if (in.sensitivity != out.sensitivity)
     {
-        cout << "in.isOpen" << endl;
+        cout << "in.sensitivity" << endl;
+        return false;
+    }
+    if (in.scaleFactor != out.scaleFactor)
+    {
+        cout << "in.scaleFactor" << endl;
+        return false;
+    }
+    if (in.numThreads != out.numThreads)
+    {
+        cout << "in.numThreads" << endl;
+        return false;
+    }
+    if (in.processingTimeMks != out.processingTimeMks)
+    {
+        cout << "in.processingTimeMks" << endl;
+        return false;
+    }
+    if (in.type != out.type)
+    {
+        cout << "in.type" << endl;
+        return false;
+    }
+    if (in.enable != out.enable)
+    {
+        cout << "in.enable" << endl;
         return false;
     }
     if (in.custom1 != out.custom1)
@@ -317,6 +460,59 @@ bool encodeDecodeTest()
     {
         cout << "in.custom3" << endl;
         return false;
+    }
+    if (in.objects.size() != out.objects.size())
+    {
+        cout << "in.objects.size()" << endl;
+        return false;
+    }
+    for (int i = 0; i < in.objects.size(); ++i)
+    {
+        if (in.objects[i].id != out.objects[i].id)
+        {
+            cout << "in.objects[" << i << "].id" << endl;
+            return false;
+        }
+        if (in.objects[i].type != out.objects[i].type)
+        {
+            cout << "in.objects[" << i << "].type" << endl;
+            return false;
+        }
+        if (in.objects[i].width != out.objects[i].width)
+        {
+            cout << "in.objects[" << i << "].width" << endl;
+            return false;
+        }
+        if (in.objects[i].height != out.objects[i].height)
+        {
+            cout << "in.objects[" << i << "].height" << endl;
+            return false;
+        }
+        if (in.objects[i].x != out.objects[i].x)
+        {
+            cout << "in.objects[" << i << "].x" << endl;
+            return false;
+        }
+        if (in.objects[i].y != out.objects[i].y)
+        {
+            cout << "in.objects[" << i << "].y" << endl;
+            return false;
+        }
+        if (in.objects[i].vX != out.objects[i].vX)
+        {
+            cout << "in.objects[" << i << "].vX" << endl;
+            return false;
+        }
+        if (in.objects[i].vY != out.objects[i].vY)
+        {
+            cout << "in.objects[" << i << "].vY" << endl;
+            return false;
+        }
+        if (in.objects[i].p != out.objects[i].p)
+        {
+            cout << "in.objects[" << i << "].p" << endl;
+            return false;
+        }
     }
 
     return true;
@@ -331,20 +527,20 @@ bool encodeDecodeCommandsTest()
     uint8_t data[1024];
     int size = 0;
     float outValue = (float)(rand() % 20);
-    VSource::encodeCommand(data, size, VSourceCommand::RESTART);
+    ObjectDetector::encodeCommand(data, size, ObjectDetectorCommand::RESET);
 
     // Decode command.
-    VSourceCommand commandId;
-    VSourceParam paramId;
+    ObjectDetectorCommand commandId;
+    ObjectDetectorParam paramId;
     float value = 0.0f;
-    if (VSource::decodeCommand(data, size, paramId, commandId, value) != 0)
+    if (ObjectDetector::decodeCommand(data, size, paramId, commandId, value) != 0)
     {
         cout << "Command not decoded" << endl;
         return false;
     }
 
     // Checkk ID and value.
-    if (commandId != VSourceCommand::RESTART)
+    if (commandId != ObjectDetectorCommand::RESET)
     {
         cout << "not a VSourceCommand::RESTART" << endl;
         return false;
@@ -352,18 +548,19 @@ bool encodeDecodeCommandsTest()
 
     // Encode param.
     outValue = (float)(rand() % 20);
-    VSource::encodeSetParamCommand(data, size, VSourceParam::EXPOSURE,outValue);
+    ObjectDetector::encodeSetParamCommand(
+    data, size, ObjectDetectorParam::NUM_THREADS, outValue);
 
     // Decode command.
     value = 0.0f;
-    if (VSource::decodeCommand(data, size, paramId, commandId, value) != 1)
+    if (ObjectDetector::decodeCommand(data, size, paramId, commandId, value) != 1)
     {
         cout << "Set param command not decoded" << endl;
         return false;
     }
 
     // Checkk ID and value.
-    if (paramId != VSourceParam::EXPOSURE)
+    if (paramId != ObjectDetectorParam::NUM_THREADS)
     {
         cout << "not a VSourceParam::EXPOSURE" << endl;
         return false;
@@ -383,109 +580,173 @@ bool encodeDecodeCommandsTest()
 bool jsonReadWriteTest()
 {
     // Prepare random params.
-    VSourceParams in;
-    in.source = "alsfghljb";
-    in.fourcc = "skdfjhvk";
-    in.logLevel = rand() % 255;
-    in.cycleTimeMks = rand() % 255;
-    in.exposure = rand() % 255;
-    in.exposureMode = rand() % 255;
-    in.gainMode = rand() % 255;
-    in.gain = rand() % 255;
-    in.focusMode = rand() % 255;
-    in.focusPos = rand() % 255;
-    in.fps = rand() % 255;
-    in.width = rand() % 255;
-    in.height = rand() % 255;
-    in.isOpen = true;
+    ObjectDetectorParams in;
+    in.logMode = rand() % 255;
+    in.frameBufferSize = rand() % 255;
+    in.minObjectWidth = rand() % 255;
+    in.maxObjectWidth = rand() % 255;
+    in.minObjectHeight = rand() % 255;
+    in.maxObjectHeight = rand() % 255;
+    in.minXSpeed = rand() % 255;
+    in.maxXSpeed = rand() % 255;
+    in.minYSpeed = rand() % 255;
+    in.maxYSpeed = rand() % 255;
+    in.xDetectionCriteria = rand() % 255;
+    in.yDetectionCriteria = rand() % 255;
+    in.resetCriteria = rand() % 255;
+    in.sensitivity = rand() % 255;
+    in.scaleFactor = rand() % 255;
+    in.numThreads = rand() % 255;
+    in.processingTimeMks = rand() % 255;
+    in.type = rand() % 255;
+    in.enable = false;
     in.custom1 = rand() % 255;
     in.custom2 = rand() % 255;
     in.custom3 = rand() % 255;
+    in.objects.clear();
+    for (int i = 0; i < 5; ++i)
+    {
+        Object obj;
+        obj.id = rand() % 255;
+        obj.type = rand() % 255;
+        obj.width = rand() % 255;
+        obj.height = rand() % 255;
+        obj.x = rand() % 255;
+        obj.y = rand() % 255;
+        obj.vX = rand() % 255;
+        obj.vY = rand() % 255;
+        obj.p = rand() % 255;
+        in.objects.push_back(obj);
+    }
 
     // Write params to file.
     cr::utils::ConfigReader inConfig;
-    inConfig.set(in, "vSourceParams");
-    inConfig.writeToFile("TestVSourceParams.json");
+    inConfig.set(in, "ObjectDetectorParams");
+    inConfig.writeToFile("ObjectDetectorParams.json");
 
     // Read params from file.
     cr::utils::ConfigReader outConfig;
-    if(!outConfig.readFromFile("TestVSourceParams.json"))
+    if(!outConfig.readFromFile("ObjectDetectorParams.json"))
     {
         cout << "Can't open config file" << endl;
         return false;
     }
 
-    VSourceParams out;
-    if(!outConfig.get(out, "vSourceParams"))
+    ObjectDetectorParams out;
+    if(!outConfig.get(out, "ObjectDetectorParams"))
     {
         cout << "Can't read params from file" << endl;
         return false;
     }
 
     // Compare params.
-    bool result = true;
-    if (out.source != in.source)
+    if (in.logMode != out.logMode)
     {
-        cout << "in.source" << endl;
-        result = false;
+        cout << "in.logMode" << endl;
+        return false;
     }
-    if (out.fourcc != in.fourcc)
+    if (in.frameBufferSize != out.frameBufferSize)
     {
-        cout << "in.fourcc" << endl;
-        result = false;
+        cout << "in.frameBufferSize" << endl;
+        return false;
     }
-    if (in.logLevel != out.logLevel)
+    if (in.minObjectWidth != out.minObjectWidth)
     {
-        cout << "in.logLevel" << endl;
-        result = false;
+        cout << "in.minObjectWidth" << endl;
+        return false;
     }
-    if (in.exposureMode != out.exposureMode)
+    if (in.maxObjectWidth != out.maxObjectWidth)
     {
-        cout << "in.exposureMode" << endl;
-        result = false;
+        cout << "in.maxObjectWidth" << endl;
+        return false;
     }
-    if (in.gainMode != out.gainMode)
+    if (in.minObjectHeight != out.minObjectHeight)
     {
-        cout << "in.gainMode" << endl;
-        result = false;
+        cout << "in.minObjectHeight" << endl;
+        return false;
     }
-    if (in.focusMode != out.focusMode)
+    if (in.maxObjectHeight != out.maxObjectHeight)
     {
-        cout << "in.focusMode" << endl;
-        result = false;
+        cout << "in.maxObjectHeight" << endl;
+        return false;
     }
-    if (in.fps != out.fps)
+    if (in.minXSpeed != out.minXSpeed)
     {
-        cout << "in.fps" << endl;
-        result = false;
+        cout << "in.minXSpeed" << endl;
+        return false;
     }
-    if (in.width != out.width)
+    if (in.maxXSpeed != out.maxXSpeed)
     {
-        cout << "in.width" << endl;
-        result = false;
+        cout << "in.maxXSpeed" << endl;
+        return false;
     }
-    if (in.height != out.height)
+    if (in.minYSpeed != out.minYSpeed)
     {
-        cout << "in.height" << endl;
-        result = false;
+        cout << "in.minYSpeed" << endl;
+        return false;
+    }
+    if (in.maxYSpeed != out.maxYSpeed)
+    {
+        cout << "in.maxYSpeed" << endl;
+        return false;
+    }
+    if (in.xDetectionCriteria != out.xDetectionCriteria)
+    {
+        cout << "in.xDetectionCriteria" << endl;
+        return false;
+    }
+    if (in.yDetectionCriteria != out.yDetectionCriteria)
+    {
+        cout << "in.yDetectionCriteria" << endl;
+        return false;
+    }
+    if (in.resetCriteria != out.resetCriteria)
+    {
+        cout << "in.resetCriteria" << endl;
+        return false;
+    }
+    if (in.sensitivity != out.sensitivity)
+    {
+        cout << "in.sensitivity" << endl;
+        return false;
+    }
+    if (in.scaleFactor != out.scaleFactor)
+    {
+        cout << "in.scaleFactor" << endl;
+        return false;
+    }
+    if (in.numThreads != out.numThreads)
+    {
+        cout << "in.numThreads" << endl;
+        return false;
+    }
+    if (in.type != out.type)
+    {
+        cout << "in.type" << endl;
+        return false;
+    }
+    if (in.enable != out.enable)
+    {
+        cout << "in.enable" << endl;
+        return false;
     }
     if (in.custom1 != out.custom1)
     {
         cout << "in.custom1" << endl;
-        result = false;
+        return false;
     }
     if (in.custom2 != out.custom2)
     {
         cout << "in.custom2" << endl;
-        result = false;
+        return false;
     }
     if (in.custom3 != out.custom3)
     {
         cout << "in.custom3" << endl;
-        result = false;
+        return false;
     }
 
-    return result;
+    return true;
 }
 
 
@@ -494,42 +755,70 @@ bool jsonReadWriteTest()
 bool encodeDecodeWithMaskTest()
 {
     // Prepare random params.
-    VSourceParams in;
-    in.source = "source";
-    in.fourcc = "skdfjhvk";
-    in.logLevel = rand() % 255;
-    in.cycleTimeMks = rand() % 255;
-    in.exposure = rand() % 255;
-    in.exposureMode = rand() % 255;
-    in.gainMode = rand() % 255;
-    in.gain = rand() % 255;
-    in.focusMode = rand() % 255;
-    in.focusPos = rand() % 255;
-    in.fps = rand() % 255;
-    in.width = rand() % 255;
-    in.height = rand() % 255;
-    in.isOpen = true;
+    ObjectDetectorParams in;
+    in.logMode = rand() % 255;
+    in.frameBufferSize = rand() % 255;
+    in.minObjectWidth = rand() % 255;
+    in.maxObjectWidth = rand() % 255;
+    in.minObjectHeight = rand() % 255;
+    in.maxObjectHeight = rand() % 255;
+    in.minXSpeed = rand() % 255;
+    in.maxXSpeed = rand() % 255;
+    in.minYSpeed = rand() % 255;
+    in.maxYSpeed = rand() % 255;
+    in.xDetectionCriteria = rand() % 255;
+    in.yDetectionCriteria = rand() % 255;
+    in.resetCriteria = rand() % 255;
+    in.sensitivity = rand() % 255;
+    in.scaleFactor = rand() % 255;
+    in.numThreads = rand() % 255;
+    in.processingTimeMks = rand() % 255;
+    in.type = rand() % 255;
+    in.enable = false;
     in.custom1 = rand() % 255;
     in.custom2 = rand() % 255;
     in.custom3 = rand() % 255;
+    in.objects.clear();
+    for (int i = 0; i < 5; ++i)
+    {
+        Object obj;
+        obj.id = rand() % 255;
+        obj.type = rand() % 255;
+        obj.width = rand() % 255;
+        obj.height = rand() % 255;
+        obj.x = rand() % 255;
+        obj.y = rand() % 255;
+        obj.vX = rand() % 255;
+        obj.vY = rand() % 255;
+        obj.p = rand() % 255;
+        in.objects.push_back(obj);
+    }
 
-    // Prepare params mask.
-    VSourceParamsMask mask;
-    mask.logLevel = true;
-    mask.cycleTimeMks = false;
-    mask.exposure = true;
-    mask.exposureMode = false;
-    mask.gainMode = true;
-    mask.gain = false;
-    mask.focusMode = true;
-    mask.focusPos = false;
-    mask.fps = true;
-    mask.width = false;
-    mask.height = true;
-    mask.isOpen = false;
-    mask.custom1 = true;
-    mask.custom2 = false;
-    mask.custom3 = true;
+    // Prepare mask.
+    ObjectDetectorParamsMask mask;
+    mask.logMode = true;
+    mask.frameBufferSize = false;
+    mask.minObjectWidth = true;
+    mask.maxObjectWidth = false;
+    mask.minObjectHeight = true;
+    mask.maxObjectHeight = false;
+    mask.minXSpeed = true;
+    mask.maxXSpeed = false;
+    mask.minYSpeed = true;
+    mask.maxYSpeed = false;
+    mask.xDetectionCriteria = true;
+    mask.yDetectionCriteria = false;
+    mask.resetCriteria = true;
+    mask.sensitivity = false;
+    mask.scaleFactor = true;
+    mask.numThreads = false;
+    mask.processingTimeMks = true;
+    mask.type = false;
+    mask.enable = true;
+    mask.custom1 = false;
+    mask.custom2 = true;
+    mask.custom3 = false;
+    mask.objects = true;
 
     // Encode data.
     uint8_t data[1024];
@@ -539,7 +828,7 @@ bool encodeDecodeWithMaskTest()
     cout << "Encoded data size: " << size << " bytes" << endl;
 
     // Decode data.
-    VSourceParams out;
+    ObjectDetectorParams out;
     if (!out.decode(data))
     {
         cout << "Can't decode data" << endl;
@@ -547,90 +836,168 @@ bool encodeDecodeWithMaskTest()
     }
 
     // Compare params.
-    if (out.source != "")
+    if (in.logMode != out.logMode)
     {
-        cout << "in.source" << endl;
+        cout << "in.logMode" << endl;
         return false;
     }
-    if (out.fourcc != "")
+    if (0 != out.frameBufferSize)
     {
-        cout << "in.fourcc" << endl;
+        cout << "in.frameBufferSize" << endl;
         return false;
     }
-    if (in.logLevel != out.logLevel)
+    if (in.minObjectWidth != out.minObjectWidth)
     {
-        cout << "in.logLevel" << endl;
+        cout << "in.minObjectWidth" << endl;
         return false;
     }
-    if (0 != out.cycleTimeMks)
+    if (0 != out.maxObjectWidth)
     {
-        cout << "in.cycleTimeMks" << endl;
+        cout << "in.maxObjectWidth" << endl;
         return false;
     }
-    if (in.exposure != out.exposure)
+    if (in.minObjectHeight != out.minObjectHeight)
     {
-        cout << "in.exposure" << endl;
+        cout << "in.minObjectHeight" << endl;
         return false;
     }
-    if (0 != out.exposureMode)
+    if (0 != out.maxObjectHeight)
     {
-        cout << "in.exposureMode" << endl;
+        cout << "in.maxObjectHeight" << endl;
         return false;
     }
-    if (in.gainMode != out.gainMode)
+    if (in.minXSpeed != out.minXSpeed)
     {
-        cout << "in.gainMode" << endl;
+        cout << "in.minXSpeed" << endl;
         return false;
     }
-    if (0 != out.gain)
+    if (0 != out.maxXSpeed)
     {
-        cout << "in.gain" << endl;
+        cout << "in.maxXSpeed" << endl;
         return false;
     }
-    if (in.focusMode != out.focusMode)
+    if (in.minYSpeed != out.minYSpeed)
     {
-        cout << "in.focusMode" << endl;
+        cout << "in.minYSpeed" << endl;
         return false;
     }
-    if (0 != out.focusPos)
+    if (0 != out.maxYSpeed)
     {
-        cout << "in.focusPos" << endl;
+        cout << "in.maxYSpeed" << endl;
         return false;
     }
-    if (in.fps != out.fps)
+    if (in.xDetectionCriteria != out.xDetectionCriteria)
     {
-        cout << "in.fps" << endl;
+        cout << "in.xDetectionCriteria" << endl;
         return false;
     }
-    if (0 != out.width)
+    if (0 != out.yDetectionCriteria)
     {
-        cout << "in.width" << endl;
+        cout << "in.yDetectionCriteria" << endl;
         return false;
     }
-    if (in.height != out.height)
+    if (in.resetCriteria != out.resetCriteria)
     {
-        cout << "in.height" << endl;
+        cout << "in.resetCriteria" << endl;
         return false;
     }
-    if (false != out.isOpen)
+    if (0 != out.sensitivity)
     {
-        cout << "in.isOpen" << endl;
+        cout << "in.sensitivity" << endl;
         return false;
     }
-    if (in.custom1 != out.custom1)
+    if (in.scaleFactor != out.scaleFactor)
+    {
+        cout << "in.scaleFactor" << endl;
+        return false;
+    }
+    if (0 != out.numThreads)
+    {
+        cout << "in.numThreads" << endl;
+        return false;
+    }
+    if (in.processingTimeMks != out.processingTimeMks)
+    {
+        cout << "in.processingTimeMks" << endl;
+        return false;
+    }
+    if (0 != out.type)
+    {
+        cout << "in.type" << endl;
+        return false;
+    }
+    if (in.enable != out.enable)
+    {
+        cout << "in.enable" << endl;
+        return false;
+    }
+    if (0 != out.custom1)
     {
         cout << "in.custom1" << endl;
         return false;
     }
-    if (0.0f != out.custom2)
+    if (in.custom2 != out.custom2)
     {
         cout << "in.custom2" << endl;
         return false;
     }
-    if (in.custom3 != out.custom3)
+    if (0 != out.custom3)
     {
         cout << "in.custom3" << endl;
         return false;
+    }
+    if (in.objects.size() != out.objects.size())
+    {
+        cout << "in.objects.size()" << endl;
+        return false;
+    }
+    for (int i = 0; i < in.objects.size(); ++i)
+    {
+        if (in.objects[i].id != out.objects[i].id)
+        {
+            cout << "in.objects[" << i << "].id" << endl;
+            return false;
+        }
+        if (in.objects[i].type != out.objects[i].type)
+        {
+            cout << "in.objects[" << i << "].type" << endl;
+            return false;
+        }
+        if (in.objects[i].width != out.objects[i].width)
+        {
+            cout << "in.objects[" << i << "].width" << endl;
+            return false;
+        }
+        if (in.objects[i].height != out.objects[i].height)
+        {
+            cout << "in.objects[" << i << "].height" << endl;
+            return false;
+        }
+        if (in.objects[i].x != out.objects[i].x)
+        {
+            cout << "in.objects[" << i << "].x" << endl;
+            return false;
+        }
+        if (in.objects[i].y != out.objects[i].y)
+        {
+            cout << "in.objects[" << i << "].y" << endl;
+            return false;
+        }
+        if (in.objects[i].vX != out.objects[i].vX)
+        {
+            cout << "in.objects[" << i << "].vX" << endl;
+            return false;
+        }
+        if (in.objects[i].vY != out.objects[i].vY)
+        {
+            cout << "in.objects[" << i << "].vY" << endl;
+            return false;
+        }
+        if (in.objects[i].p != out.objects[i].p)
+        {
+            cout << "in.objects[" << i << "].p" << endl;
+            return false;
+        }
     }
 
     return true;

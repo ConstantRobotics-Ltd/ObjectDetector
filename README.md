@@ -2,7 +2,7 @@
 
 ![logo](_static/object_detector_logo.png)
 
-# ObjectDetector interface C++ library
+# **ObjectDetector interface C++ library**
 
 **v1.0.0**
 

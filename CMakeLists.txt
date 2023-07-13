@@ -30,7 +30,7 @@ endif()
 ## project configuration
 ################################################################################
 SET(${PARENT}_OBJECT_DETECTOR                ON  CACHE BOOL "" ${REWRITE_FORCE})
-SET(${PARENT}_OBJECT_DETECTOR_TEST           OFF CACHE BOOL "" ${REWRITE_FORCE})
+SET(${PARENT}_OBJECT_DETECTOR_TEST           ON  CACHE BOOL "" ${REWRITE_FORCE})
 
 
 
