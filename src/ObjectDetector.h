@@ -42,6 +42,7 @@ typedef struct Object
 typedef struct ObjectDetectorParamsMask
 {
     bool logMode{true};
+    bool frameBufferSize{true};
     bool minObjectWidth{true};
     bool maxObjectWidth{true};
     bool minObjectHeight{true};
@@ -58,7 +59,7 @@ typedef struct ObjectDetectorParamsMask
     bool numThreads{true};
     bool processingTimeMks{true};
     bool type{true};
-    bool mode{true};
+    bool enable{true};
     bool custom1{true};
     bool custom2{true};
     bool custom3{true};
@@ -76,6 +77,8 @@ public:
     /// Logging mode. Values: 0 - Disable, 1 - Only file,
     /// 2 - Only terminal (console), 3 - File and terminal (console).
     int logMode{0};
+    /// Frame buffer size. Depends on implementation.
+    int frameBufferSize{1};
     /// Minimum object width to be detected, pixels. To be detected object's
     /// width must be >= minObjectWidth.
     int minObjectWidth{4};
@@ -122,8 +125,8 @@ public:
     int processingTimeMks{0};
     /// Algorithm type. Depends on implementation.
     int type{0};
-    /// Mode. Default: 0 - Off, 1 - On.
-    int mode{1};
+    /// Mode. Default: false - Off, on - On.
+    bool enable{true};
     /// Custom parameter. Depends on implementation.
     float custom1{0.0f};
     /// Custom parameter. Depends on implementation.
@@ -135,6 +138,7 @@ public:
 
     JSON_READABLE(ObjectDetectorParams,
                   logMode,
+                  frameBufferSize,
                   minObjectWidth,
                   maxObjectWidth,
                   minObjectHeight,
@@ -150,7 +154,7 @@ public:
                   scaleFactor,
                   numThreads,
                   type,
-                  mode,
+                  enable,
                   custom1,
                   custom2,
                   custom3);
@@ -189,6 +193,8 @@ enum class ObjectDetectorParam
     /// Logging mode. Values: 0 - Disable, 1 - Only file,
     /// 2 - Only terminal (console), 3 - File and terminal (console).
     LOG_MODE = 1,
+    /// Frame buffer size. Depends on implementation.
+    FRAME_BUFFER_SIZE,
     /// Minimum object width to be detected, pixels. To be detected object's
     /// width must be >= minObjectWidth.
     MIN_OBJECT_WIDTH,
