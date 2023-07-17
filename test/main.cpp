@@ -103,6 +103,7 @@ bool copyTest()
     in.custom1 = rand() % 255;
     in.custom2 = rand() % 255;
     in.custom3 = rand() % 255;
+    in.minDetectionProbability = rand() % 255;
     in.objects.clear();
     for (int i = 0; i < 5; ++i)
     {
@@ -319,6 +320,7 @@ bool encodeDecodeTest()
     in.custom1 = rand() % 255;
     in.custom2 = rand() % 255;
     in.custom3 = rand() % 255;
+    in.minDetectionProbability = rand() % 255;
     in.objects.clear();
     for (int i = 0; i < 5; ++i)
     {
@@ -459,6 +461,11 @@ bool encodeDecodeTest()
     if (in.custom3 != out.custom3)
     {
         cout << "in.custom3" << endl;
+        return false;
+    }
+    if (in.minDetectionProbability != out.minDetectionProbability)
+    {
+        cout << "in.minDetectionProbability" << endl;
         return false;
     }
     if (in.objects.size() != out.objects.size())
@@ -745,6 +752,11 @@ bool jsonReadWriteTest()
         cout << "in.custom3" << endl;
         return false;
     }
+    if (in.minDetectionProbability != out.minDetectionProbability)
+    {
+        cout << "in.minDetectionProbability" << endl;
+        return false;
+    }
 
     return true;
 }
@@ -778,6 +790,7 @@ bool encodeDecodeWithMaskTest()
     in.custom1 = rand() % 255;
     in.custom2 = rand() % 255;
     in.custom3 = rand() % 255;
+    in.minDetectionProbability = rand() % 255;
     in.objects.clear();
     for (int i = 0; i < 5; ++i)
     {
@@ -944,6 +957,11 @@ bool encodeDecodeWithMaskTest()
     if (0 != out.custom3)
     {
         cout << "in.custom3" << endl;
+        return false;
+    }
+    if (in.minDetectionProbability != out.minDetectionProbability)
+    {
+        cout << "in.minDetectionProbability" << endl;
         return false;
     }
     if (in.objects.size() != out.objects.size())

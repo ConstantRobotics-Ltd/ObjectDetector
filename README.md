@@ -1,5 +1,3 @@
-
-
 ![logo](_static/object_detector_logo.png)
 
 # **ObjectDetector interface C++ library**
@@ -14,26 +12,25 @@
 
 - [Overview](#Overview)
 - [Versions](#Versions)
-- [Video source interface class description](#Video-source-interface-class-description)
-  - [VSource class declaration](#VSource-class-declaration)
+- [ObjectDetector interface class description](#ObjectDetector-interface-class-description)
+  - [ObjectDetector class declaration](#ObjectDetector-class-declaration)
   - [getVersion method](#getVersion-method)
-  - [openVSource method](#openVSource-method)
-  - [initVSource method](#initVSource-method)
-  - [isVSourceOpen method](#isVSourceOpen-method)
-  - [closeVSource method](#closeVSource-method)
-  - [getFrame method](#getFrame-method)
+  - [initObjectDetector method](#initObjectDetector-method)
   - [setParam method](#setParam-method)
   - [getParam method](#getParam-method)
   - [getParams method](#getParams-method)
+  - [getObjects method](#getObjects-method)
   - [executeCommand method](#executeCommand-method)
+  - [detect method](#detect-method)
   - [encodeSetParamCommand method](#encodeSetParamCommand-method)
   - [encodeCommand method](#encodeCommand-method)
   - [decodeCommand method](#decodeCommand-method)
 - [Data structures](#Data-structures)
-  - [VSourceCommand enum](#VSourceCommand-enum)
-  - [VSourceParam enum](#VSourceParam-enum)
-- [VSourceParams class description](#VSourceParams-class-description)
-  - [VSourceParams class declaration](#VSourceParams-class-declaration)
+  - [ObjectDetectorCommand enum](#ObjectDetectorCommand-enum)
+  - [ObjectDetectorParam enum](#ObjectDetectorParam-enum)
+  - [Object structure](#Object-structure)
+- [ObjectDetectorParams class description](#ObjectDetectorParams-class-description)
+  - [ObjectDetectorParams class declaration](#ObjectDetectorParams-class-declaration)
   - [Serialize video source params](#Serialize-video-source-params)
   - [Deserialize video source params](#Deserialize-video-source-params)
   - [Read params from JSON file and write to JSON file](#Read-params-from-JSON-file-and-write-to-JSON-file)
@@ -43,7 +40,7 @@
 
 # Overview
 
-**VSource** C++ library provides standard interface as well defines data structures and rules for different video source classes (video capture classes). **VSource** interface class doesn't do anything, just provides interface. Also **VSource** class provides data structures for video source parameters. Different video source classes inherit interface form **VSource** C++ class. **VSource.h** file contains data structures **VSourceParams** class, **VSourceCommand** enum, **VSourceParam** enum and includes **VSource** class declaration. **VSourceParams** class contains video source params and includes methods to encode and decode video source params.  **VSourceCommands** enum contains IDs of commands supported by **VSource** class. **VSourceParam** enum contains IDs of params supported by **VSource** class. All video sources should include params and commands listed in **VSource.h** file. VSource class dependency:<br/>- [**Frame**](https://github.com/ConstantRobotics-Ltd/Frame) class which describes video frame structure and pixel formats.<br/>- [**ConfigReader**](https://github.com/ConstantRobotics-Ltd/ConfigReader) class which provides methods to work with JSON structures (read/write).
+**ObjectDetector** C++ library provides standard interface as well defines data structures and rules for different object detectors (motion detectors, events detectors, neural networks etc.). **ObjectDetector** interface class doesn't do anything, just provides interface and defines data structures. Different object detector classes inherit interface form **ObjectDetector** C++ class. **ObjectDetector.h** file contains **ObjectDetectorParams** class, **ObjectDetectorCommand** enum, **ObjectDetectorParam** enum and includes **ObjectDetector** class declaration. **ObjectDetectorParams** class contains object detector params, list of detected objects and includes methods to encode and decode video source params.  **ObjectDetectorCommand** enum contains IDs of commands. **ObjectDetectorParam** enum contains IDs of params. All object detectors should include params and commands listed in **ObjectDetector.h** file. ObjectDetector class dependency: [**Frame**](https://github.com/ConstantRobotics-Ltd/Frame) class which describes video frame structure and pixel formats, [**ConfigReader**](https://github.com/ConstantRobotics-Ltd/ConfigReader) class which provides methods to work with JSON structures (read/write).
 
 
 
@@ -51,29 +48,22 @@
 
 **Table 1** - Library versions.
 
-| Version | Release date | What's new                                                   |
-| ------- | ------------ | ------------------------------------------------------------ |
-| 1.0.0   | 13.06.2023   | First version                                                |
-| 1.0.2   | 20.06.2023   | - Fixed bugs.<br />- Documentation updated.                  |
-| 1.1.0   | 29.06.2023   | - Added new parameters.<br />- Documentation updated.        |
-| 1.1.1   | 29.06.2023   | - Added license.<br />- Repository made public.              |
-| 1.2.0   | 01.07.2023   | - Added new methods to encode/decode commands.<br />- Tests updated.<br />- Documentation updated. |
-| 1.2.1   | 01.07.2023   | - Params description updated in source code.                 |
-| 1.3.0   | 05.07.2023   | - VSourceParams class updated (initString replaced by source).<br />- decode(...) method in VSourceParams class updated. |
-| 1.3.1   | 06.07.2023   | - gain, exposure and focusPos fields of VSourceParams excluded from JSOM reading/writing. |
-| 1.3.2   | 06.07.2023   | - Frame library version updated.                             |
-| 1.4.0   | 11.07.2023   | - Added VSourceParamsMask structure.<br />- Added params mask in encode(...) method of VSourceParams class. |
+| Version | Release date | What's new    |
+| ------- | ------------ | ------------- |
+| 1.0.0   | 17.07.2023   | First version |
 
 
 
-# Video source interface class description
+# ObjectDetector interface class description
 
-## VSource class declaration
 
-**VSource** interface class declared in **VSource.h** file. Class declaration:
+
+## ObjectDetector class declaration
+
+**ObjectDetector** interface class declared in **ObjectDetector.h** file. Class declaration:
 
 ```cpp
-class VSource
+class ObjectDetector
 {
 public:
     /**
@@ -82,70 +72,55 @@ public:
      */
     static std::string getVersion();
     /**
-     * @brief Open video source. All params will be set by default.
-     * @param initString Init string. Format depends on implementation.
-     * Default format: <video device or ID or file>;<width>;<height>;<fourcc>
-     * @return TRUE if the video source open or FALSE if not.
+     * @brief Init object detector. All params will be set.
+     * @param params Parameters structure.
+     * @return TRUE if the object detector init or FALSE if not.
      */
-    virtual bool openVSource(std::string& initString) = 0;
+    virtual bool initObjectDetector(ObjectDetectorParams& params) = 0;
     /**
-     * @brief Init video source. All params will be set according to structure.
-     * @param params Video source parameters structure.
-     * @return TRUE if the video source init or FALSE if not.
+     * @brief Set object detector param.
+     * @param id Param ID.
+     * @param value Param value to set.
+     * @return TRUE if param was set of FALSE.
      */
-    virtual bool initVSource(VSourceParams& params) = 0;
+    virtual bool setParam(ObjectDetectorParam id, float value) = 0;
     /**
-     * @brief Get open status.
-     * @return TRUE if video source open or FALSE if not.
+     * @brief Get object detector param value.
+     * @param id Param ID.
+     * @return Param value or -1.
      */
-    virtual bool isVSourceOpen() = 0;
+    virtual float getParam(ObjectDetectorParam id) = 0;
     /**
-     * @brief Close video source.
+     * @brief Get object detector params structure.
+     * @return Object detector params structure.
      */
-    virtual void closeVSource() = 0;
+    virtual ObjectDetectorParams getParams() = 0;
     /**
-     * @brief Get new video frame.
-     * @param frame Frame object to copy new data.
-     * @param timeoutMsec Timeout to wait new frame data:
-     * timeoutMsec == -1 - Method will wait endlessly until new data arrive.
-     * timeoutMsec == 0  - Method will only check if new data exist.
-     * timeoutMsec > 0   - Method will wait new data specified time.
-     * @return TRUE if new video frame exist and copied or FALSE if not.
+     * @brief Get list of objects.
+     * @return List of objects. If no detected object the list will be empty.
      */
-    virtual bool getFrame(Frame& frame, int32_t timeoutMsec = 0) = 0;
-    /**
-     * @brief Set video source param.
-     * @param id Parameter ID.
-     * @param value Parameter value to set.
-     * @return TRUE if property was set of FALSE.
-     */
-    virtual bool setParam(VSourceParam id, float value) = 0;
-    /**
-     * @brief Get video source param value.
-     * @param id Parameter ID.
-     * @return Parameter value or -1.
-     */
-    virtual float getParam(VSourceParam id) = 0;
-    /**
-     * @brief Get video source params structure.
-     * @return Video source parameters structure.
-     */
-    virtual VSourceParams getParams() = 0;
+    virtual std::vector<Object> getObjects() = 0;
     /**
      * @brief Execute command.
      * @param id Command ID.
      * @return TRUE if the command accepted or FALSE if not.
      */
-    virtual bool executeCommand(VSourceCommand id) = 0;
+    virtual bool executeCommand(ObjectDetectorCommand id) = 0;
+    /**
+     * @brief Perform detection.
+     * @param frame Source video frame.
+     * @return TRUE if video frame was processed or FALSE if not.
+     */
+    virtual bool detect(cr::video::Frame& frame) = 0;
     /**
      * @brief Encode set param command.
      * @param data Pointer to data buffer. Must have size >= 11.
      * @param size Size of encoded data.
-     * @param id Parameter id.
-     * @param value Parameter value.
+     * @param id Param id.
+     * @param value Param value.
      */
     static void encodeSetParamCommand(
-            uint8_t* data, int& size, VSourceParam id, float value);
+            uint8_t* data, int& size, ObjectDetectorParam id, float value);
     /**
      * @brief Encode command.
      * @param data Pointer to data buffer. Must have size >= 11.
@@ -153,7 +128,7 @@ public:
      * @param id Command ID.
      */
     static void encodeCommand(
-            uint8_t* data, int& size, VSourceCommand id);
+            uint8_t* data, int& size, ObjectDetectorCommand id);
     /**
      * @brief Decode command.
      * @param data Pointer to command data.
@@ -165,8 +140,8 @@ public:
      */
     static int decodeCommand(uint8_t* data,
                              int size,
-                             VSourceParam& paramId,
-                             VSourceCommand& commandId,
+                             ObjectDetectorParam& paramId,
+                             ObjectDetectorCommand& commandId,
                              float& value);
 };
 ```
@@ -175,180 +150,153 @@ public:
 
 ## getVersion method
 
-**getVersion()** method returns string of current version of **VSource** class. Particular video source class can have it's own **getVersion()** method. Method declaration:
+**getVersion()** method returns string of current version of **ObjectDetector** class. Particular object detector class can have it's own **getVersion()** method. Method declaration:
 
 ```cpp
 static std::string getVersion();
 ```
 
-Method can be used without **VSource** class instance:
+Method can be used without **ObjectDetector** class instance:
 
 ```cpp
-std::cout << "VSource class version: " << VSource::getVersion() << std::endl;
+std::cout << "ObjectDetector class version: " << ObjectDetector::getVersion() << std::endl;
 ```
 
 Console output:
 
 ```bash
-VSource class version: 1.4.0
+ObjectDetector class version: 1.0.0
 ```
 
 
 
-## openVSource method
+## initObjectDetector method
 
-**openVSource(...)** method initializes video source. Instead of **openVSource(...)** method user can call **initVSource(...)**. Method declaration:
-
-```cpp
-virtual bool openVSource(std::string& initString) = 0;
-```
-
-| Parameter  | Value                                                        |
-| ---------- | ------------------------------------------------------------ |
-| initString | Initialization string. Format depends on implementation but it is recommended to keep default format: [video device or ID or file];[width];[height];[fourcc]. Example: "/dev/video0;1920;1080;YUYV". |
-
-**Returns:** TRUE if the video source open or FALSE if not.
-
-
-
-## initVSource method
-
-**initVSource(...)** method designed to initialize video source by set of parameters. Instead of **initVSource(...)** method user can call **openVSource(...)**. Method declaration:
+**initObjectDetector(...)** method initializes object detector. Method declaration:
 
 ```cpp
-virtual bool initVSource(VSourceParams& params) = 0;
+virtual bool initObjectDetector(ObjectDetectorParams& params) = 0;
 ```
 
 | Parameter | Value                                                        |
 | --------- | ------------------------------------------------------------ |
-| params    | VSourceParams structure (see **VSourceParams** class description). The video source should set parameters according to params structure. Particular video source can support not all parameters listed in VSourceParams class. |
+| params    | Object detector parameters class. Object detector should initialize all parameters listed in ObjectDetectorParams. |
 
-**Returns:** TRUE if the video source initialized or FALSE if not.
-
-
-
-## isVSourceOpen method
-
-**isVSourceOpen()** method returns video source initialization status. Initialization status also included in **VSourceParams** class. Method declaration:
-
-```cpp
-virtual bool isVSourceOpen() = 0;
-```
-
-**Returns:** TRUE if the video source open (initialized) or FALSE if not.
-
-
-
-## closeVSource method
-
-**closeVSource()** method intended to close video source. Method declaration: 
-
-```cpp
-virtual void closeVSource() = 0;
-```
-
-
-
-## getFrame method
-
-**getFrame(...)** method intended to get input video frame. Video source should support auto reinitialization in case connection loss. Method declaration:
-
-```cpp
-virtual bool getFrame(Frame& frame, int32_t timeoutMsec = 0) = 0;
-```
-
-| Parameter   | Value                                                        |
-| ----------- | ------------------------------------------------------------ |
-| frame       | Output video frame (see [**Frame**](https://github.com/ConstantRobotics-Ltd/Frame) class description). Video source class determines output pixel format. Pixel format can be set in **initVSource(...)** or **openVSource(...)** methods if particular video source supports it. |
-| timeoutMsec | Timeout to wait new frame data:<br/>- timeoutMs == -1 - Method will wait endlessly until new data arrive.<br/>- timeoutMs == 0  - Method will only check if new data exist.<br/>- timeoutMs > 0   - Method will wait new data specified time.<br />**Each video source implementation must provide described behavior.** |
-
-**Returns:** TRUE if new data exists and copied or FALSE if not.
+**Returns:** TRUE if the object detector initialized or FALSE if not.
 
 
 
 ## setParam method
 
-**setParam(...)** method designed to set new video source parameters value. Method declaration:
+**setParam(...)** method designed to set new object detector parameter value. Method declaration:
 
 ```cpp
-virtual bool setParam(VSourceParam id, float value) = 0;
+virtual bool setParam(ObjectDetectorParam id, float value) = 0;
 ```
 
-| Parameter | Description                                                  |
-| --------- | ------------------------------------------------------------ |
-| id        | Video source parameter ID according to **VSourceParam** enum. |
-| value     | Video source parameter value.                                |
+| Parameter | Description                                             |
+| --------- | ------------------------------------------------------- |
+| id        | Parameter ID according to **ObjectDetectorParam** enum. |
+| value     | Parameter value. Value depends on parameter ID.         |
 
-**Returns:** TRUE is the parameter was set or FALSE if not.
+**Returns:** TRUE if the parameter was set or FALSE if not.
 
 
 
 ## getParam method
 
-**getParam(...)** method designed to obtain video source parameter value. Method declaration:
+**getParam(...)** method designed to obtain object detector parameter value. Method declaration:
 
 ```cpp
-virtual float getParam(VSourceParam id) = 0;
+virtual float getParam(ObjectDetectorParam id) = 0;
 ```
 
-| Parameter | Description                                                  |
-| --------- | ------------------------------------------------------------ |
-| id        | Video source parameter ID according to **VSourceParam** enum. |
+| Parameter | Description                                             |
+| --------- | ------------------------------------------------------- |
+| id        | Parameter ID according to **ObjectDetectorParam** enum. |
 
-**Returns:** parameter value or -1 of the parameters doesn't exist in particular video source class.
+**Returns:** parameter value or -1 of the parameters doesn't exist in particular object detector class.
 
 
 
 ## getParams method
 
-**getParams(...)** method designed to obtain video source params structures. Method declaration:
+**getParams(...)** method designed to obtain object detector params structures as well a list of detected objects. Method declaration:
 
 ```cpp
-virtual VSourceParams getParams() = 0;
+virtual ObjectDetectorParams getParams() = 0;
 ```
 
-**Returns:** video source parameters structure (see **VSourceParams** class description).
+**Returns:** object detector parameters structure (see **ObjectDetectorParams** class description).
+
+
+
+## getObjects method
+
+**getObjects()** method designed to obtain list of detected objects. User can object list of detected objects via **getParams(...)** method as well. Method declaration:
+
+```cpp
+virtual std::vector<Object> getObjects() = 0;
+```
+
+**Returns:** list of detected objects (see **Object** class description). If no detected object the list will be empty.
 
 
 
 ## executeCommand method
 
-**executeCommand(...)** method designed to execute video source command. Method declaration:
+**executeCommand(...)** method designed to execute object detector command. Method declaration:
 
 ```cpp
-virtual bool executeCommand(VSourceCommand id) = 0;
+virtual bool executeCommand(ObjectDetectorCommand id) = 0;
 ```
 
-| Parameter | Description                                                  |
-| --------- | ------------------------------------------------------------ |
-| id        | Video source command ID according to **VSourceCommand** enum. |
+| Parameter | Description                                             |
+| --------- | ------------------------------------------------------- |
+| id        | Command ID according to **ObjectDetectorCommand** enum. |
 
 **Returns:** TRUE is the command was executed or FALSE if not.
 
 
 
-## encodeSetParamCommand method
+## detect method
 
-**encodeSetParamCommand(...)** static method designed to encode command to change any parameter for remote video source. To control video source remotely, the developer has to design his own protocol and according to it encode the command and deliver it over the communication channel. To simplify this, the **VSource** class contains static methods for encoding the control command. The **VSource** class provides two types of commands: a parameter change command (SET_PARAM) and an action command (COMMAND). **encodeSetParamCommand(...)** designed to encode SET_PARAM command. Method declaration:
+**detect(...)** method designed to perform detection algorithm. Method declaration:
 
 ```cpp
-static void encodeSetParamCommand(uint8_t* data, int& size, VSourceParam id, float value);
+virtual bool detect(cr::video::Frame& frame) = 0;
+```
+
+| Parameter | Description                                                  |
+| --------- | ------------------------------------------------------------ |
+| frame     | Video frame for processing. Object detector processes only RAW pixel formats (BGR24, RGB24, GRAY, YUYV24, YUYV, UYVY, NV12, NV21, YV12, YU12, see **Frame** class description). |
+
+**Returns:** TRUE is the video frame was processed FALSE if not. If object detector disabled (see **ObjectDetectorParam** enum description) the method should return TRUE.
+
+
+
+## encodeSetParamCommand method
+
+**encodeSetParamCommand(...)** static method designed to encode command to change any parameter for remote object detector. To control object detector remotely, the developer has to design his own protocol and according to it encode the command and deliver it over the communication channel. To simplify this, the **ObjectDetector** class contains static methods for encoding the control command. The **ObjectDetector** class provides two types of commands: a parameter change command (SET_PARAM) and an action command (COMMAND). **encodeSetParamCommand(...)** designed to encode SET_PARAM command. Method declaration:
+
+```cpp
+static void encodeSetParamCommand(uint8_t* data, int& size, ObjectDetectorParam id, float value);
 ```
 
 | Parameter | Description                                                  |
 | --------- | ------------------------------------------------------------ |
 | data      | Pointer to data buffer for encoded command. Must have size >= 11. |
 | size      | Size of encoded data. Will be 11 bytes.                      |
-| id        | Parameter ID according to **VSourceParam** enum.             |
-| value     | Parameter value.                                             |
+| id        | Parameter ID according to **ObjectDetectorParam** enum.      |
+| value     | Parameter value. Value depends on parameter ID.              |
 
 **SET_PARAM** command format:
 
 | Byte | Value | Description                                        |
 | ---- | ----- | -------------------------------------------------- |
 | 0    | 0x01  | SET_PARAM command header value.                    |
-| 1    | 0x01  | Major version of VSource class.                    |
-| 2    | 0x03  | Minor version of VSource class.                    |
+| 1    | 0x01  | Major version of ObjectDetector class.             |
+| 2    | 0x00  | Minor version of ObjectDetector class.             |
 | 3    | id    | Parameter ID **int32_t** in Little-endian format.  |
 | 4    | id    | Parameter ID **int32_t** in Little-endian format.  |
 | 5    | id    | Parameter ID **int32_t** in Little-endian format.  |
@@ -358,7 +306,7 @@ static void encodeSetParamCommand(uint8_t* data, int& size, VSourceParam id, flo
 | 9    | value | Parameter value **float** in Little-endian format. |
 | 10   | value | Parameter value **float** in Little-endian format. |
 
-**encodeSetParamCommand(...)** is static and used without **VSource** class instance. This method used on client side (control system). Command encoding example:
+**encodeSetParamCommand(...)** is static and used without **ObjectDetector** class instance. This method used on client side (control system). Command encoding example:
 
 ```cpp
 // Buffer for encoded data.
@@ -368,32 +316,32 @@ int size = 0;
 // Random parameter value.
 float outValue = (float)(rand() % 20);
 // Encode command.
-VSurce::encodeSetParamCommand(data, size, VSourceParam::EXPOSURE, outValue);
+ObjectDetector::encodeSetParamCommand(data, size, ObjectDetectorParam::MIN_OBJECT_WIDTH, outValue);
 ```
 
 
 
 ## encodeCommand method
 
-**encodeCommand(...)** static method designed to encode command for remote video source. To control a video source remotely, the developer has to design his own protocol and according to it encode the command and deliver it over the communication channel. To simplify this, the **VSource** class contains static methods for encoding the control command. The **VSource** class provides two types of commands: a parameter change command (SET_PARAM) and an action command (COMMAND). **encodeCommand(...)** designed to encode COMMAND (action command). Method declaration:
+**encodeCommand(...)** static method designed to encode command for remote object detector. To control object detector remotely, the developer has to design his own protocol and according to it encode the command and deliver it over the communication channel. To simplify this, the **ObjectDetector** class contains static methods for encoding the control command. The **ObjectDetector** class provides two types of commands: a parameter change command (SET_PARAM) and an action command (COMMAND). **encodeCommand(...)** designed to encode COMMAND (action command). Method declaration:
 
 ```cpp
-static void encodeCommand(uint8_t* data, int& size, VSourceCommand id);
+static void encodeCommand(uint8_t* data, int& size, ObjectDetectorCommand id);
 ```
 
 | Parameter | Description                                                  |
 | --------- | ------------------------------------------------------------ |
 | data      | Pointer to data buffer for encoded command. Must have size >= 11. |
 | size      | Size of encoded data. Will be 11 bytes.                      |
-| id        | Command ID according to **VSourceParam** enum.               |
+| id        | Command ID according to **ObjectDetectorCommand** enum.      |
 
 **COMMAND** format:
 
 | Byte | Value | Description                                     |
 | ---- | ----- | ----------------------------------------------- |
 | 0    | 0x00  | COMMAND header value.                           |
-| 1    | 0x01  | Major version of VSource class.                 |
-| 2    | 0x03  | Minor version of VSource class.                 |
+| 1    | 0x01  | Major version of ObjectDetector class.          |
+| 2    | 0x00  | Minor version of ObjectDetector class.          |
 | 3    | id    | Command ID **int32_t** in Little-endian format. |
 | 4    | id    | Command ID **int32_t** in Little-endian format. |
 | 5    | id    | Command ID **int32_t** in Little-endian format. |
@@ -407,25 +355,25 @@ uint8_t data[11];
 // Size of encoded data.
 int size = 0;
 // Encode command.
-VSource::encodeCommand(data, size, VSourceCommand::RESTART);
+ObjectDetector::encodeCommand(data, size, ObjectDetectorCommand::RESET);
 ```
 
 
 
 ## decodeCommand method
 
-**decodeCommand(...)** static method designed to decode command on video source side (edge device). Method declaration:
+**decodeCommand(...)** static method designed to decode command on object detector side (edge device). Method declaration:
 
 ```cpp
-static int decodeCommand(uint8_t* data, int size, VSourceParam& paramId, VSourceCommand& commandId, float& value);
+static int decodeCommand(uint8_t* data, int size, ObjectDetectorParam& paramId, ObjectDetectorCommand& commandId, float& value);
 ```
 
 | Parameter | Description                                                  |
 | --------- | ------------------------------------------------------------ |
 | data      | Pointer to input command.                                    |
 | size      | Size of command. Should be 11 bytes.                         |
-| paramId   | Parameter ID according to **VSourceParam** enum. After decoding SET_PARAM command the method will return parameter ID. |
-| commandId | Command ID according to **VSourceCommand** enum. After decoding COMMAND the method will return command ID. |
+| paramId   | Parameter ID according to **ObjectDetectorParam** enum. After decoding SET_PARAM command the method will return parameter ID. |
+| commandId | Command ID according to **ObjectDetectorCommand** enum. After decoding COMMAND the method will return command ID. |
 | value     | Parameter value (after decoding SET_PARAM command).          |
 
 **Returns:** **0** - in case decoding COMMAND, **1** - in case decoding SET_PARAM command or **-1** in case errors.
@@ -434,187 +382,282 @@ static int decodeCommand(uint8_t* data, int size, VSourceParam& paramId, VSource
 
 # Data structures
 
-**VSource.h** file defines IDs for parameters (**VSourceParam** enum) and IDs for commands (**VSourceCommand** enum).
+**ObjectDetector.h** file defines IDs for parameters (**ObjectDetectorParam** enum) and IDs for commands (**ObjectDetectorCommand** enum).
 
 
 
-## VSourceCommand enum
+## ObjectDetectorCommand enum
 
 Enum declaration:
 
 ```cpp
-enum class VSourceCommand
+enum class ObjectDetectorCommand
 {
-    /// Restart.
-    RESTART = 1
+    /// Reset.
+    RESET = 1,
+    /// Enable.
+    ON,
+    /// Disable.
+    OFF
 };
 ```
 
-**Table 2** - Video source commands description. Some commands maybe unsupported by particular video source class.
+**Table 2** - Object detector commands description. Some commands maybe unsupported by particular object detector class.
 
-| Command | Description                                  |
-| ------- | -------------------------------------------- |
-| RESTART | Restart video source (close and open again). |
+| Command | Description              |
+| ------- | ------------------------ |
+| RESET   | Reset algorithm.         |
+| ON      | Enable object detector.  |
+| OFF     | Disable object detector. |
 
 
 
-## VSourceParam enum
+## ObjectDetectorParam enum
 
 Enum declaration:
 
 ```cpp
-enum class VSourceParam
+enum class ObjectDetectorParam
 {
-    /// [read/write] Logging mode. Values: 0 - Disable, 1 - Only file,
-    /// 2 - Only terminal, 3 - File and terminal.
-    LOG_LEVEL = 1,
-    /// [read/write] Frame width. User can set frame width before initialization
-    /// or after. Some video source classes may set width automatically.
-    WIDTH,
-    /// [read/write] Frame height. User can set frame height before
-    /// initialization or after. Some video source classes may set height
-    /// automatically.
-    HEIGHT,
-    /// [read/write] Gain mode. Value depends on implementation but it is
-    /// recommended to keep default values: 0 - Manual control, 1 - Auto.
-    GAIN_MODE,
-    /// [read/write] Gain value. Value: 0(min for particular video source class)
-    /// - 65535(max for particular video source class).
-    GAIN,
-    /// [read/write] Exposure mode. Value depends on implementation but it is
-    /// recommended to keep default values: 0 - Manual control, 1 - Auto.
-    EXPOSURE_MODE,
-    /// [read/write] Exposure value. Value: 0(min for particular video source
-    /// class) - 65535(max for particular video source class).
-    EXPOSURE,
-    /// [read/write] Focus mode. Value depends on implementation but it is
-    /// recommended to keep default values: 0 - Manual control, 1 - Auto.
-    FOCUS_MODE,
-    /// [read/write] Focus position. Value: 0(full near) - 65535(full far).
-    FOCUS_POS,
-    /// [read only] Video capture cycle time. **VSource** class sets this value
-    /// automatically. This parameter means time interval between two captured
-    /// video frame.
-    CYCLE_TIME_MKS,
-    /// [read/write] FPS. User can set frame FPS before initialization or after.
-    /// Some video source classes may set FPS automatically.
-    FPS,
-    /// [read only] Open flag. 0 - not open, 1 - open.
-    IS_OPEN,
-    /// [read/write] Custom parameter. Depends on implementation.
+    /// Logging mode. Values: 0 - Disable, 1 - Only file,
+    /// 2 - Only terminal (console), 3 - File and terminal (console).
+    LOG_MODE = 1,
+    /// Frame buffer size. Depends on implementation.
+    FRAME_BUFFER_SIZE,
+    /// Minimum object width to be detected, pixels. To be detected object's
+    /// width must be >= MIN_OBJECT_WIDTH.
+    MIN_OBJECT_WIDTH,
+    /// Maximum object width to be detected, pixels. To be detected object's
+    /// width must be <= MAX_OBJECT_WIDTH.
+    MAX_OBJECT_WIDTH,
+    /// Minimum object height to be detected, pixels. To be detected object's
+    /// height must be >= MIN_OBJECT_HEIGHT.
+    MIN_OBJECT_HEIGHT,
+    /// Maximum object height to be detected, pixels. To be detected object's
+    /// height must be <= MAX_OBJECT_HEIGHT.
+    MAX_OBJECT_HEIGHT,
+    /// Minimum object's horizontal speed to be detected, pixels/frame. To be
+    /// detected object's horizontal speed must be >= MIN_X_SPEED.
+    MIN_X_SPEED,
+    /// Maximum object's horizontal speed to be detected, pixels/frame. To be
+    /// detected object's horizontal speed must be <= MAX_X_SPEED.
+    MAX_X_SPEED,
+    /// Minimum object's vertical speed to be detected, pixels/frame. To be
+    /// detected object's vertical speed must be >= MIN_Y_SPEED.
+    MIN_Y_SPEED,
+    /// Maximum object's vertical speed to be detected, pixels/frame. To be
+    /// detected object's vertical speed must be <= MAX_Y_SPEED.
+    MAX_Y_SPEED,
+    /// Probability threshold from 0 to 1. To be detected object detection
+    /// probability must be >= MIN_DETECTION_PROPABILITY.
+    MIN_DETECTION_PROPABILITY,
+    /// Horizontal track detection criteria, frames. By default shows how many
+    /// frames the objects must move in any(+/-) horizontal direction to be
+    /// detected.
+    X_DETECTION_CRITERIA,
+    /// Vertical track detection criteria, frames. By default shows how many
+    /// frames the objects must move in any(+/-) vertical direction to be
+    /// detected.
+    Y_DETECTION_CRITERIA,
+    /// Track reset criteria, frames. By default shows how many
+    /// frames the objects should be not detected to be excluded from results.
+    RESET_CRITERIA,
+    /// Detection sensitivity. Depends on implementation. Default from 0 to 1.
+    SENSITIVITY,
+    /// Frame scaling factor for processing purposes. Reduce the image size by
+    /// scaleFactor times horizontally and vertically for faster processing.
+    SCALE_FACTOR,
+    /// Num threads. Number of threads for parallel computing.
+    NUM_THREADS,
+    /// Processing time for last frame, mks.
+    PROCESSING_TIME_MKS,
+    /// Algorithm type. Depends on implementation.
+    TYPE,
+    /// Mode. Default: 0 - Off, 1 - On.
+    MODE,
+    /// Custom parameter. Depends on implementation.
     CUSTOM_1,
-    /// [read/write] Custom parameter. Depends on implementation.
+    /// Custom parameter. Depends on implementation.
     CUSTOM_2,
-    /// [read/write] Custom parameter. Depends on implementation.
+    /// Custom parameter. Depends on implementation.
     CUSTOM_3
 };
 ```
 
 **Table 3** - Video source params description. Some params maybe unsupported by particular video source class.
 
-| Parameter      | Access       | Description                                                  |
-| -------------- | ------------ | ------------------------------------------------------------ |
-| LOG_LEVEL      | read / write | Logging mode. Values: 0 - Disable, 1 - Only file, 2 - Only terminal, 3 - File and terminal. |
-| WIDTH          | read / write | Frame width. User can set frame width before initialization or after. Some video source classes may set width automatically. |
-| HEIGHT         | read / write | Frame height. User can set frame height before initialization or after. Some video source classes may set height automatically. |
-| GAIN_MODE      | read / write | Gain mode. Value depends on implementation but it is recommended to keep default values: 0 - Manual control, 1 - Auto. |
-| GAIN           | read / write | Gain value. Value: 0(min for particular video source class) - 65535(max for particular video source class). |
-| EXPOSURE_MODE  | read / write | Exposure mode. Value depends on implementation but it is recommended to keep default values: 0 - Manual control, 1 - Auto. |
-| EXPOSURE       | read / write | Exposure value. Value: 0(min for particular video source class) - 65535(max for particular video source class). |
-| FOCUS_MODE     | read / write | Focus mode. Value depends on implementation but it is recommended to keep default values: 0 - Manual control, 1 - Auto. |
-| FOCUS_POS      | read / write | Focus position. Value: 0(full near) - 65535(full far).       |
-| CYCLE_TIME_MKS | read only    | Video capture cycle time. **VSource** class sets this value automatically. This parameter means time interval between two captured video frame. |
-| FPS            | read / write | FPS. User can set frame FPS before initialization or after. Some video source classes may set FPS automatically. |
-| IS_OPEN        | read only    | Open flag. 0 - not open, 1 - open.                           |
-| CUSTOM_1       | read / write | Custom parameter. Depends on implementation.                 |
-| CUSTOM_2       | read / write | Custom parameter. Depends on implementation.                 |
-| CUSTOM_3       | read / write | Custom parameter. Depends on implementation.                 |
+| Parameter                 | Access       | Description                                                  |
+| ------------------------- | ------------ | ------------------------------------------------------------ |
+| LOG_MODE                  | read / write | Logging mode. Values: 0 - Disable, 1 - Only file, 2 - Only terminal, 3 - File and terminal. |
+| FRAME_BUFFER_SIZE         | read / write | Frame buffer size. Depends on implementation. It can be buffer size for image filtering or can be buffer size to collect frames for processing. |
+| MIN_OBJECT_WIDTH          | read / write | Minimum object width to be detected, pixels. To be detected object's width must be >= MIN_OBJECT_WIDTH. |
+| MAX_OBJECT_WIDTH          | read / write | Maximum object width to be detected, pixels. To be detected object's width must be <= MAX_OBJECT_WIDTH. |
+| MIN_OBJECT_HEIGHT         | read / write | Minimum object height to be detected, pixels. To be detected object's height must be >= MIN_OBJECT_HEIGHT. |
+| MAX_OBJECT_HEIGHT         | read / write | Maximum object height to be detected, pixels. To be detected object's height must be <= MAX_OBJECT_HEIGHT. |
+| MIN_X_SPEED               | read / write | Minimum object's horizontal speed to be detected, pixels/frame. To be detected object's horizontal speed must be >= MIN_X_SPEED. |
+| MAX_X_SPEED               | read / write | Maximum object's horizontal speed to be detected, pixels/frame. To be detected object's horizontal speed must be <= MAX_X_SPEED. |
+| MIN_Y_SPEED               | read / write | Minimum object's vertical speed to be detected, pixels/frame. To be detected object's vertical speed must be >= MIN_Y_SPEED. |
+| MAX_Y_SPEED               | read / write | Maximum object's vertical speed to be detected, pixels/frame. To be detected object's vertical speed must be <= MAX_Y_SPEED. |
+| MIN_DETECTION_PROPABILITY | read / write | Probability threshold from 0 to 1. To be detected object detection probability must be >= MIN_DETECTION_PROPABILITY. For example: neural networks for each detection result calculates detection probability from 0 to 1. MIN_DETECTION_PROPABILITY parameters used to filter detection results. |
+| X_DETECTION_CRITERIA      | read / write | Horizontal track detection criteria, frames. By default shows how many frames the objects must move in any(+/-) horizontal direction to be detected. |
+| Y_DETECTION_CRITERIA      | read / write | Vertical track detection criteria, frames. By default shows how many frames the objects must move in any(+/-) vertical direction to be detected. |
+| RESET_CRITERIA            | read / write | Track reset criteria, frames. By default shows how many frames the objects should be not detected to be excluded from results. |
+| SENSITIVITY               | read / write | Detection sensitivity. Depends on implementation. Default from 0 to 1. |
+| SCALE_FACTOR              | read / write | Frame scaling factor for processing purposes. Reduce the image size by scaleFactor times horizontally and vertically for faster processing. |
+| NUM_THREADS               | read / write | Num threads. Number of threads for parallel computing.       |
+| PROCESSING_TIME_MKS       | read only    | Processing time for last frame, mks.                         |
+| TYPE                      | read / write | Algorithm type. Depends on implementation.                   |
+| MODE                      | read / write | Mode. Default: 0 - Off, 1 - On.                              |
+| CUSTOM_1                  | read / write | Custom parameter. Depends on implementation.                 |
+| CUSTOM_2                  | read / write | Custom parameter. Depends on implementation.                 |
+| CUSTOM_3                  | read / write | Custom parameter. Depends on implementation.                 |
 
 
 
-# VSourceParams class description
+## Object structure
 
-
-
-## VSourceParams class declaration
-
-**VSourceParams** class used for video source initialization (**initVSource(...)** method) or to get all actual params (**getParams()** method). Also **VSourceParams** provide structure to write/read params from JSON files (**JSON_READABLE** macro, see [**ConfigReader**](https://github.com/ConstantRobotics-Ltd/ConfigReader) class description) and provide methos to encode and decode params. Class declaration:
+**Object** structure used to describe detected object. Object structure declared in **ObjectDetector.h** file. Structure declaration:
 
 ```cpp
-class VSourceParams
+typedef struct Object
+{
+    /// Object ID. Must be uniques for particular object.
+    int id{0};
+    /// Object type. Depends on implementation.
+    int type{0};
+    /// Object rectangle width, pixels.
+    int width{0};
+    /// Object rectangle height, pixels.
+    int height{0};
+    /// Object rectangle top-left horizontal coordinate, pixels.
+    int x{0};
+    /// Object rectangle top-left vertical coordinate, pixels.
+    int y{0};
+    /// Horizontal component of object velocity, +-pixels/frame.
+    float vX{0.0f};
+    /// Vertical component of object velocity, +-pixels/frame.
+    float vY{0.0f};
+    /// Detection probability from 0 (minimum) to 1 (maximum).
+    float p{0.0f};
+} Object;
+```
+
+**Table 4** - Object structure fields description.
+
+| Field  | Type  | Description                                                  |
+| ------ | ----- | ------------------------------------------------------------ |
+| id     | int   | Object ID. Must be uniques for particular object. Object detector must assign unique ID for each detected object. This is necessary for control algorithms to distinguish different objects from frame to frame. |
+| type   | int   | Object type. Depends on implementation. For example detection neural networks can detect multiple type of objects. |
+| width  | int   | Object rectangle width, pixels. Must be MIN_OBJECT_WIDTH <= width <= MAX_OBJECT_WIDTH (see **ObjectDetectorParam** enum description). |
+| height | int   | Object rectangle height, pixels. Must be MIN_OBJECT_HEIGHT <= height <= MAX_OBJECT_HEIGHT (see **ObjectDetectorParam** enum description). |
+| x      | int   | Object rectangle top-left horizontal coordinate, pixels.     |
+| y      | int   | Object rectangle top-left vertical coordinate, pixels.       |
+| vX     | float | Horizontal component of object velocity, +-pixels/frame. if it possible object detector should estimate object velocity on video frames. |
+| vY     | float | Vertical component of object velocity, +-pixels/frame. if it possible object detector should estimate object velocity on video frames. |
+| p      | float | Detection probability from 0 (minimum) to 1 (maximum). Must be p >= MIN_DETECTION_PROPABILITY (see **ObjectDetectorParam** enum description). |
+
+
+
+# ObjectDetectorParams class description
+
+
+
+## ObjectDetectorParams class declaration
+
+**ObjectDetectorParams** class used for object detector initialization (**initObjectDetector(...)** method) or to get all actual params (**getParams()** method). Also **ObjectDetectorParams** provide structure to write/read params from JSON files (**JSON_READABLE** macro, see [**ConfigReader**](https://github.com/ConstantRobotics-Ltd/ConfigReader) class description) and provide methos to encode and decode params. Class declaration:
+
+```cpp
+class ObjectDetectorParams
 {
 public:
     /// Logging mode. Values: 0 - Disable, 1 - Only file,
-    /// 2 - Only terminal, 3 - File and terminal.
-    int logLevel{0};
-    /// Video source: file, video stream, video device, camera num, etc.
-    std::string source{"/dev/video0"};
-    /// FOURCC: RGB24, BGR24, YUYV, UYVY, GRAY, YUV24, NV12, NV21, YU12, YV12.
-    /// Value says to video source class which pixel format preferable for
-    /// output video frame. Particular video source class can ignore this params
-    /// during initialization. Parameters should be set before initialization.
-    std::string fourcc{"YUYV"};
-    /// Frame width. User can set frame width before initialization
-    /// or after. Some video source classes may set width automatically.
-    int width{1920};
-    /// Frame height. User can set frame height before
-    /// initialization or after. Some video source classes may set height
-    /// automatically.
-    int height{1080};
-    /// Gain mode. Value depends on implementation but it is
-    /// recommended to keep default values: 0 - Manual control, 1 - Auto.
-    int gainMode{1};
-    /// Gain value. Value: 0(min for particular video source class)
-    /// - 65535(max for particular video source class).
-    int gain{0};
-    /// Exposure mode. Value depends on implementation but it is
-    /// recommended to keep default values: 0 - Manual control, 1 - Auto.
-    int exposureMode{1};
-    /// Exposure value. Value: 0(min for particular video source
-    /// class) - 65535(max for particular video source class).
-    int exposure{1};
-    /// Focus mode. Focus mode. Value depends on implementation but it is
-    /// recommended to keep default values: 0 - Manual control, 1 - Auto.
-    int focusMode{1};
-    /// Focus position. Value: 0(full near) - 65535(full far).
-    int focusPos{0};
-    /// Video capture cycle time. **VSource** class sets this value
-    /// automatically. This parameter means time interval between two captured
-    /// video frame.
-    int cycleTimeMks{0};
-    /// FPS. User can set frame FPS before initialization or after.
-    /// Some video source classes may set FPS automatically.
-    float fps{0};
-    /// Open flag. 0 - not open, 1 - open.
-    bool isOpen{false};
+    /// 2 - Only terminal (console), 3 - File and terminal (console).
+    int logMode{0};
+    /// Frame buffer size. Depends on implementation.
+    int frameBufferSize{1};
+    /// Minimum object width to be detected, pixels. To be detected object's
+    /// width must be >= minObjectWidth.
+    int minObjectWidth{4};
+    /// Maximum object width to be detected, pixels. To be detected object's
+    /// width must be <= maxObjectWidth.
+    int maxObjectWidth{128};
+    /// Minimum object height to be detected, pixels. To be detected object's
+    /// height must be >= minObjectHeight.
+    int minObjectHeight{4};
+    /// Maximum object height to be detected, pixels. To be detected object's
+    /// height must be <= maxObjectHeight.
+    int maxObjectHeight{128};
+    /// Minimum object's horizontal speed to be detected, pixels/frame. To be
+    /// detected object's horizontal speed must be >= minXSpeed.
+    float minXSpeed{0.0f};
+    /// Maximum object's horizontal speed to be detected, pixels/frame. To be
+    /// detected object's horizontal speed must be <= maxXSpeed.
+    float maxXSpeed{30.0f};
+    /// Minimum object's vertical speed to be detected, pixels/frame. To be
+    /// detected object's vertical speed must be >= minYSpeed.
+    float minYSpeed{0.0f};
+    /// Maximum object's vertical speed to be detected, pixels/frame. To be
+    /// detected object's vertical speed must be <= maxYSpeed.
+    float maxYSpeed{30.0f};
+    /// Probability threshold from 0 to 1. To be detected object detection
+    /// probability must be >= minDetectionProbability.
+    float minDetectionProbability{0.5f};
+    /// Horizontal track detection criteria, frames. By default shows how many
+    /// frames the objects must move in any(+/-) horizontal direction to be
+    /// detected.
+    int xDetectionCriteria{1};
+    /// Vertical track detection criteria, frames. By default shows how many
+    /// frames the objects must move in any(+/-) vertical direction to be
+    /// detected.
+    int yDetectionCriteria{1};
+    /// Track reset criteria, frames. By default shows how many
+    /// frames the objects should be not detected to be excluded from results.
+    int resetCriteria{1};
+    /// Detection sensitivity. Depends on implementation. Default from 0 to 1.
+    float sensitivity{0.04f};
+    /// Frame scaling factor for processing purposes. Reduce the image size by
+    /// scaleFactor times horizontally and vertically for faster processing.
+    int scaleFactor{1};
+    /// Num threads. Number of threads for parallel computing.
+    int numThreads{1};
+    /// Processing time for last frame, mks.
+    int processingTimeMks{0};
+    /// Algorithm type. Depends on implementation.
+    int type{0};
+    /// Mode. Default: false - Off, on - On.
+    bool enable{true};
     /// Custom parameter. Depends on implementation.
     float custom1{0.0f};
     /// Custom parameter. Depends on implementation.
     float custom2{0.0f};
     /// Custom parameter. Depends on implementation.
     float custom3{0.0f};
+    /// List of detected objects.
+    std::vector<Object> objects;
 
-    JSON_READABLE(VSourceParams, logLevel, source, fourcc, width, height,
-                  gainMode, exposureMode, focusMode, fps, custom1,
-                  custom2, custom3);
+    JSON_READABLE(ObjectDetectorParams, logMode, frameBufferSize, minObjectWidth,
+                  maxObjectWidth, minObjectHeight, maxObjectHeight, minXSpeed,
+                  maxXSpeed, minYSpeed, maxYSpeed, minDetectionProbability,
+                  xDetectionCriteria, yDetectionCriteria, resetCriteria,
+                  sensitivity, scaleFactor, numThreads, type, enable,
+                  custom1, custom2, custom3);
 
     /**
      * @brief operator =
      * @param src Source object.
-     * @return VSourceParams obect.
+     * @return ObjectDetectorParams object.
      */
-    VSourceParams& operator= (const VSourceParams& src);
+    ObjectDetectorParams& operator= (const ObjectDetectorParams& src);
     /**
-     * @brief Encode params. The method doesn't encode params:
-     * source and fourcc fields.
+     * @brief Encode params.
      * @param data Pointer to data buffer.
      * @param size Size of data.
      * @param mask Pointer to parameters mask.
      */
-    void encode(uint8_t* data, int& size, VSourceParamsMask* mask = nullptr);
+    void encode(uint8_t* data, int& size,
+                ObjectDetectorParamsMask* mask = nullptr);
     /**
-     * @brief Decode params. The method doesn't decode params:
-     * source and fourcc fields.
+     * @brief Decode params.
      * @param data Pointer to data.
      * @return TRUE is params decoded or FALSE if not.
      */
@@ -622,67 +665,83 @@ public:
 };
 ```
 
-**Table 4** - VSourceParams class fields description.
+**Table 5** - ObjectDetectorParams class fields description.
 
-| Field        | type   | Description                                                  |
-| ------------ | ------ | ------------------------------------------------------------ |
-| logLevel     | int    | Logging mode. Values: 0 - Disable, 1 - Only file, 2 - Only terminal, 3 - File and terminal. |
-| source       | string | Video source: file, video stream, video device, camera num, etc. |
-| fourcc       | string | FOURCC: RGB24, BGR24, YUYV, UYVY, GRAY, YUV24, NV12, NV21, YU12, YV12. Value says to video source class which pixel format preferable for output video frame. Particular video source class can ignore this params during initialization. Parameters should be set before initialization. |
-| width        | int    | Frame width. User can set frame width before initialization or after. Some video source classes may set width automatically. |
-| height       | int    | Frame height. User can set frame height before initialization or after. Some video source classes may set height automatically. |
-| gainMode     | int    | Gain mode. Value depends on implementation but it is recommended to keep default values: 0 - Manual control, 1 - Auto. |
-| gain         | int    | Gain value. Value: 0(min for particular video source class) - 65535(max for particular video source class). |
-| exposureMode | int    | Exposure mode. Value depends on implementation but it is recommended to keep default values: 0 - Manual control, 1 - Auto. |
-| exposure     | int    | Exposure value. Value: 0(min for particular video source class) - 65535(max for particular video source class). |
-| focusMode    | int    | Focus mode. Value depends on implementation but it is recommended to keep default values: 0 - Manual control, 1 - Auto. |
-| focusPos     | int    | Focus position. Value: 0(full near) - 65535(full far).       |
-| cycleTimeMks | int    | Video capture cycle time. **VSource** class sets this value automatically. This parameter means time interval between two captured video frame. |
-| fps          | float  | FPS. User can set frame FPS before initialization or after. Some video source classes may set FPS automatically. |
-| isOpen       | bool   | Open flag. false - not open, true - open.                    |
-| custom1      | float  | Custom parameter. Depends on implementation.                 |
-| custom2      | float  | Custom parameter. Depends on implementation.                 |
-| custom3      | float  | Custom parameter. Depends on implementation.                 |
+| Field                   | Type        | Description                                                  |
+| ----------------------- | ----------- | ------------------------------------------------------------ |
+| logMode                 | int         | Logging mode. Values: 0 - Disable, 1 - Only file, 2 - Only terminal, 3 - File and terminal. |
+| frameBufferSize         | int         | Frame buffer size. Depends on implementation. It can be buffer size for image filtering or can be buffer size to collect frames for processing. |
+| minObjectWidth          | int         | Minimum object width to be detected, pixels. To be detected object's width must be >= minObjectWidth. |
+| maxObjectWidth          | int         | Maximum object width to be detected, pixels. To be detected object's width must be <= maxObjectWidth. |
+| minObjectHeight         | int         | Minimum object height to be detected, pixels. To be detected object's height must be >= minObjectHeight. |
+| maxObjectHeight         | int         | Maximum object height to be detected, pixels. To be detected object's height must be <= maxObjectHeight. |
+| minXSpeed               | float       | Minimum object's horizontal speed to be detected, pixels/frame. To be detected object's horizontal speed must be >= minXSpeed. |
+| maxXSpeed               | float       | Maximum object's horizontal speed to be detected, pixels/frame. To be detected object's horizontal speed must be <= maxXSpeed. |
+| minYSpeed               | float       | Minimum object's vertical speed to be detected, pixels/frame. To be detected object's vertical speed must be >= minYSpeed. |
+| maxYSpeed               | float       | Maximum object's vertical speed to be detected, pixels/frame. To be detected object's vertical speed must be <= maxYSpeed. |
+| minDetectionProbability | float       | Probability threshold from 0 to 1. To be detected object detection probability must be >= minDetectionProbability. For example: neural networks for each detection result calculates detection probability from 0 to 1. minDetectionProbability parameters used to filter detection results. |
+| xDetectionCriteria      | int         | Horizontal track detection criteria, frames. By default shows how many frames the objects must move in any(+/-) horizontal direction to be detected. |
+| yDetectionCriteria      | int         | Vertical track detection criteria, frames. By default shows how many frames the objects must move in any(+/-) vertical direction to be detected. |
+| resetCriteria           | int         | Track reset criteria, frames. By default shows how many frames the objects should be not detected to be excluded from results. |
+| sensitivity             | float       | Detection sensitivity. Depends on implementation. Default from 0 to 1. |
+| scaleFactor             | int         | Frame scaling factor for processing purposes. Reduce the image size by scaleFactor times horizontally and vertically for faster processing. |
+| numThreads              | int         | Num threads. Number of threads for parallel computing.       |
+| processingTimeMks       | int         | Processing time for last frame, mks.                         |
+| type                    | int         | Algorithm type. Depends on implementation.                   |
+| enable                  | bool        | Mode: false - Off, true - On.                                |
+| custom1                 | float       | Custom parameter. Depends on implementation.                 |
+| custom2                 | float       | Custom parameter. Depends on implementation.                 |
+| custom3                 | float       | Custom parameter. Depends on implementation.                 |
+| objects                 | std::vector | List of detected objects.                                    |
 
-**None:** *VSourceParams class fields listed in Table 4 **must** reflect params set/get by methods setParam(...) and getParam(...).* 
+**None:** *ObjectDetectorParams class fields listed in Table 5 **must** reflect params set/get by methods setParam(...) and getParam(...).* 
 
 
 
-## Serialize video source params
+## Serialize object detector params
 
-**VSourceParams** class provides method **encode(...)** to serialize video source params (fields of VSourceParams class, see Table 4). Serialization of video source params necessary in case when you need to send video source params via communication channels. Method doesn't encode fields: **initString** and **fourcc**. Method provides options to exclude particular parameters from serialization. To do this method inserts binary mask (2 bytes) where each bit represents particular parameter and **decode(...)** method recognizes it. Method declaration:
+**ObjectDetectorParams** class provides method **encode(...)** to serialize object detector params (fields of ObjectDetectorParams class, see Table 5). Serialization of object detector params necessary in case when you need to send video source params via communication channels. Method provides options to exclude particular parameters from serialization. To do this method inserts binary mask (3 bytes) where each bit represents particular parameter and **decode(...)** method recognizes it. Method declaration:
 
 ```cpp
-void encode(uint8_t* data, int& size, VSourceParamsMask* mask = nullptr);
+void encode(uint8_t* data, int& size, ObjectDetectorParamsMask* mask = nullptr);
 ```
 
 | Parameter | Value                                                        |
 | --------- | ------------------------------------------------------------ |
 | data      | Pointer to data buffer. Buffer size should be at least **43** bytes. |
 | size      | Size of encoded data. 43 bytes by default.                   |
-| mask      | Parameters mask - pointer to **VSourceParamsMask** structure. **VSourceParamsMask** (declared in VSource.h file) determines flags for each field (parameter) declared in **VSourceParams** class. If the user wants to exclude any parameters from serialization, he can put a pointer to the mask. If the user wants to exclude a particular parameter from serialization, he should set the corresponding flag in the VSourceParamsMask structure. |
+| mask      | Parameters mask - pointer to **ObjectDetectorParamsMask** structure. **ObjectDetectorParamsMask** (declared in ObjectDetector.h file) determines flags for each field (parameter) declared in **ObjectDetectorParams** class. If the user wants to exclude any parameters from serialization, he can put a pointer to the mask. If the user wants to exclude a particular parameter from serialization, he should set the corresponding flag in the ObjectDetectorParamsMask structure. |
 
-**VSourceParamsMask** structure declaration:
+**ObjectDetectorParamsMask** structure declaration:
 
 ```cpp
-typedef struct VSourceParamsMask
+typedef struct ObjectDetectorParamsMask
 {
-    bool logLevel{true};
-    bool width{true};
-    bool height{true};
-    bool gainMode{true};
-    bool gain{true};
-    bool exposureMode{true};
-    bool exposure{true};
-    bool focusMode{true};
-    bool focusPos{true};
-    bool cycleTimeMks{true};
-    bool fps{true};
-    bool isOpen{true};
+    bool logMode{true};
+    bool frameBufferSize{true};
+    bool minObjectWidth{true};
+    bool maxObjectWidth{true};
+    bool minObjectHeight{true};
+    bool maxObjectHeight{true};
+    bool minXSpeed{true};
+    bool maxXSpeed{true};
+    bool minYSpeed{true};
+    bool maxYSpeed{true};
+    bool minDetectionProbability{true};
+    bool xDetectionCriteria{true};
+    bool yDetectionCriteria{true};
+    bool resetCriteria{true};
+    bool sensitivity{true};
+    bool scaleFactor{true};
+    bool numThreads{true};
+    bool processingTimeMks{true};
+    bool type{true};
+    bool enable{true};
     bool custom1{true};
     bool custom2{true};
     bool custom3{true};
-} VSourceParamsMask;
+    bool objects{true};
+} ObjectDetectorParamsMask;
 ```
 
 Example without parameters mask:
@@ -799,11 +858,11 @@ if(!outConfig.readFromFile("TestVSourceParams.json"))
 
 # Build and connect to your project
 
-Typical commands to build **VSource** library:
+Typical commands to build **ObjectDetector** library:
 
 ```bash
-git clone https://github.com/ConstantRobotics-Ltd/VSource.git
-cd VSource
+git clone https://github.com/ConstantRobotics-Ltd/ObjectDetector.git
+cd ObjectDetector
 git submodule update --init --recursive
 mkdir build
 cd build
@@ -811,7 +870,7 @@ cmake ..
 make
 ```
 
-If you want connect **VSource** library to your CMake project as source code you can make follow. For example, if your repository has structure:
+If you want connect **ObjectDetector** library to your CMake project as source code you can make follow. For example, if your repository has structure:
 
 ```bash
 CMakeLists.txt
@@ -821,15 +880,15 @@ src
     yourLib.cpp
 ```
 
-You can add repository **VSource** as submodule by commands:
+You can add repository **ObjectDetector** as submodule by commands:
 
 ```bash
 cd <your respository folder>
-git submodule add https://github.com/ConstantRobotics-Ltd/VSource.git 3rdparty/VSource
+git submodule add https://github.com/ConstantRobotics-Ltd/ObjectDetector.git 3rdparty/ObjectDetector
 git submodule update --init --recursive
 ```
 
-In you repository folder will be created folder **3rdparty/VSource** which contains files of **VSource** repository with subrepositories **Frame** and **ConfigReader**. New structure of your repository:
+In you repository folder will be created folder **3rdparty/ObjectDetector** which contains files of **ObjectDetector** repository with subrepositories **Frame** and **ConfigReader**. New structure of your repository:
 
 ```bash
 CMakeLists.txt
@@ -838,7 +897,7 @@ src
     yourLib.h
     yourLib.cpp
 3rdparty
-    VSource
+    ObjectDetector
 ```
 
 Create CMakeLists.txt file in **3rdparty** folder. CMakeLists.txt should contain:
@@ -865,18 +924,18 @@ SET(${PARENT}_SUBMODULE_CACHE_OVERWRITE OFF CACHE BOOL "" FORCE)
 ## CONFIGURATION
 ## 3rd-party submodules configuration
 ################################################################################
-SET(${PARENT}_SUBMODULE_VSOURCE                         ON  CACHE BOOL "" FORCE)
-if (${PARENT}_SUBMODULE_VSOURCE)
-    SET(${PARENT}_VSOURCE                               ON  CACHE BOOL "" FORCE)
-    SET(${PARENT}_VSOURCE_TEST                          OFF CACHE BOOL "" FORCE)
+SET(${PARENT}_SUBMODULE_OBJECT_DETECTOR                 ON  CACHE BOOL "" FORCE)
+if (${PARENT}_SUBMODULE_OBJECT_DETECTOR)
+    SET(${PARENT}_OBJECT_DETECTOR                       ON  CACHE BOOL "" FORCE)
+    SET(${PARENT}_OBJECT_DETECTOR_TEST                  OFF CACHE BOOL "" FORCE)
 endif()
 
 ################################################################################
 ## INCLUDING SUBDIRECTORIES
 ## Adding subdirectories according to the 3rd-party configuration
 ################################################################################
-if (${PARENT}_SUBMODULE_VSOURCE)
-    add_subdirectory(VSource)
+if (${PARENT}_SUBMODULE_OBJECT_DETECTOR)
+    add_subdirectory(ObjectDetector)
 endif()
 ```
 
@@ -899,10 +958,10 @@ Next you need include folder 3rdparty in main **CMakeLists.txt** file of your re
 add_subdirectory(3rdparty)
 ```
 
-Next you have to include VSource library in your **src/CMakeLists.txt** file:
+Next you have to include ObjectDetector library in your **src/CMakeLists.txt** file:
 
 ```cmake
-target_link_libraries(${PROJECT_NAME} VSource)
+target_link_libraries(${PROJECT_NAME} ObjectDetector)
 ```
 
 Done!

@@ -87,6 +87,7 @@ void cr::detector::ObjectDetectorParams::encode(
         memcpy(&data[pos], &custom1, 4); pos += 4;
         memcpy(&data[pos], &custom2, 4); pos += 4;
         memcpy(&data[pos], &custom3, 4); pos += 4;
+        memcpy(&data[pos], &minDetectionProbability, 4); pos += 4;
         int numObjects = (int)objects.size();
         memcpy(&data[pos], &numObjects, 4); pos += 4;
         for (int i = 0; i < numObjects; ++i)
@@ -135,7 +136,8 @@ void cr::detector::ObjectDetectorParams::encode(
     data[pos] = data[pos] | (mask->custom1 ? (uint8_t)16 : (uint8_t)0);
     data[pos] = data[pos] | (mask->custom2 ? (uint8_t)8 : (uint8_t)0);
     data[pos] = data[pos] | (mask->custom3 ? (uint8_t)4 : (uint8_t)0);
-    data[pos] = data[pos] | (mask->objects ? (uint8_t)2 : (uint8_t)0);
+    data[pos] = data[pos] | (mask->minDetectionProbability ? (uint8_t)2 : (uint8_t)0);
+    data[pos] = data[pos] | (mask->objects ? (uint8_t)1 : (uint8_t)0);
     pos += 1;
 
     if (mask->logMode)
@@ -228,7 +230,11 @@ void cr::detector::ObjectDetectorParams::encode(
     }
     if (mask->custom3)
     {
-        memcpy(&data[pos], &custom3, 4);
+        memcpy(&data[pos], &custom3, 4); pos += 4;
+    }
+    if (mask->minDetectionProbability)
+    {
+        memcpy(&data[pos], &minDetectionProbability, 4); pos += 4;
     }
     if (mask->objects)
     {
@@ -453,6 +459,14 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
         custom3 = 0.0f;
     }
     if ((data[5] & (uint8_t)2) == (uint8_t)2)
+    {
+        memcpy(&minDetectionProbability, &data[pos], 4); pos += 4;
+    }
+    else
+    {
+        minDetectionProbability = 0.0f;
+    }
+    if ((data[5] & (uint8_t)1) == (uint8_t)1)
     {
         int numObjects = 0;
         memcpy(&numObjects, &data[pos], 4); pos += 4;

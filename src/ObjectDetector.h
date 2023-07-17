@@ -51,6 +51,7 @@ typedef struct ObjectDetectorParamsMask
     bool maxXSpeed{true};
     bool minYSpeed{true};
     bool maxYSpeed{true};
+    bool minDetectionProbability{true};
     bool xDetectionCriteria{true};
     bool yDetectionCriteria{true};
     bool resetCriteria{true};
@@ -92,17 +93,20 @@ public:
     /// height must be <= maxObjectHeight.
     int maxObjectHeight{128};
     /// Minimum object's horizontal speed to be detected, pixels/frame. To be
-    /// detected object's horizontal speed must be >= minHorizontalSpeed.
+    /// detected object's horizontal speed must be >= minXSpeed.
     float minXSpeed{0.0f};
     /// Maximum object's horizontal speed to be detected, pixels/frame. To be
-    /// detected object's horizontal speed must be <= maxHorizontalSpeed.
+    /// detected object's horizontal speed must be <= maxXSpeed.
     float maxXSpeed{30.0f};
     /// Minimum object's vertical speed to be detected, pixels/frame. To be
-    /// detected object's vertical speed must be >= minVerticalSpeed.
+    /// detected object's vertical speed must be >= minYSpeed.
     float minYSpeed{0.0f};
     /// Maximum object's vertical speed to be detected, pixels/frame. To be
-    /// detected object's vertical speed must be <= maxVerticalSpeed.
+    /// detected object's vertical speed must be <= maxYSpeed.
     float maxYSpeed{30.0f};
+    /// Probability threshold from 0 to 1. To be detected object detection
+    /// probability must be >= minDetectionProbability.
+    float minDetectionProbability{0.5f};
     /// Horizontal track detection criteria, frames. By default shows how many
     /// frames the objects must move in any(+/-) horizontal direction to be
     /// detected.
@@ -147,6 +151,7 @@ public:
                   maxXSpeed,
                   minYSpeed,
                   maxYSpeed,
+                  minDetectionProbability,
                   xDetectionCriteria,
                   yDetectionCriteria,
                   resetCriteria,
@@ -196,29 +201,32 @@ enum class ObjectDetectorParam
     /// Frame buffer size. Depends on implementation.
     FRAME_BUFFER_SIZE,
     /// Minimum object width to be detected, pixels. To be detected object's
-    /// width must be >= minObjectWidth.
+    /// width must be >= MIN_OBJECT_WIDTH.
     MIN_OBJECT_WIDTH,
     /// Maximum object width to be detected, pixels. To be detected object's
-    /// width must be <= maxObjectWidth.
+    /// width must be <= MAX_OBJECT_WIDTH.
     MAX_OBJECT_WIDTH,
     /// Minimum object height to be detected, pixels. To be detected object's
-    /// height must be >= minObjectHeight.
+    /// height must be >= MIN_OBJECT_HEIGHT.
     MIN_OBJECT_HEIGHT,
     /// Maximum object height to be detected, pixels. To be detected object's
-    /// height must be <= maxObjectHeight.
+    /// height must be <= MAX_OBJECT_HEIGHT.
     MAX_OBJECT_HEIGHT,
     /// Minimum object's horizontal speed to be detected, pixels/frame. To be
-    /// detected object's horizontal speed must be >= minHorizontalSpeed.
+    /// detected object's horizontal speed must be >= MIN_X_SPEED.
     MIN_X_SPEED,
     /// Maximum object's horizontal speed to be detected, pixels/frame. To be
-    /// detected object's horizontal speed must be <= maxHorizontalSpeed.
+    /// detected object's horizontal speed must be <= MAX_X_SPEED.
     MAX_X_SPEED,
     /// Minimum object's vertical speed to be detected, pixels/frame. To be
-    /// detected object's vertical speed must be >= minVerticalSpeed.
+    /// detected object's vertical speed must be >= MIN_Y_SPEED.
     MIN_Y_SPEED,
     /// Maximum object's vertical speed to be detected, pixels/frame. To be
-    /// detected object's vertical speed must be <= maxVerticalSpeed.
+    /// detected object's vertical speed must be <= MAX_Y_SPEED.
     MAX_Y_SPEED,
+    /// Probability threshold from 0 to 1. To be detected object detection
+    /// probability must be >= MIN_DETECTION_PROPABILITY.
+    MIN_DETECTION_PROPABILITY,
     /// Horizontal track detection criteria, frames. By default shows how many
     /// frames the objects must move in any(+/-) horizontal direction to be
     /// detected.
@@ -310,11 +318,24 @@ public:
     virtual ObjectDetectorParams getParams() = 0;
 
     /**
+     * @brief Get list of objects.
+     * @return List of objects. If no detected object the list will be empty.
+     */
+    virtual std::vector<Object> getObjects() = 0;
+
+    /**
      * @brief Execute command.
      * @param id Command ID.
      * @return TRUE if the command accepted or FALSE if not.
      */
     virtual bool executeCommand(ObjectDetectorCommand id) = 0;
+
+    /**
+     * @brief Perform detection.
+     * @param frame Source video frame.
+     * @return TRUE if video frame was processed or FALSE if not.
+     */
+    virtual bool detect(cr::video::Frame& frame) = 0;
 
     /**
      * @brief Encode set param command.
@@ -350,7 +371,6 @@ public:
                              ObjectDetectorCommand& commandId,
                              float& value);
 };
-
 }
 }
 
