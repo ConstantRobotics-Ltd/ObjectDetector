@@ -40,6 +40,8 @@ cr::detector::ObjectDetectorParams &cr::detector::ObjectDetectorParams::operator
     custom2 = src.custom2;
     custom3 = src.custom3;
     objects = src.objects;
+    minDetectionProbability = src.minDetectionProbability;
+    initString = src.initString;
 
     return *this;
 }
@@ -490,6 +492,8 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
     {
         objects.clear();
     }
+
+    initString = "";
 
     return true;
 }

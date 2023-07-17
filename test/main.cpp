@@ -104,6 +104,7 @@ bool copyTest()
     in.custom2 = rand() % 255;
     in.custom3 = rand() % 255;
     in.minDetectionProbability = rand() % 255;
+    in.initString = "serfrerferf";
     in.objects.clear();
     for (int i = 0; i < 5; ++i)
     {
@@ -287,6 +288,11 @@ bool copyTest()
             return false;
         }
     }
+    if (in.initString != out.initString)
+    {
+        cout << "in.in.initString" << endl;
+        return false;
+    }
 
     return true;
 }
@@ -321,6 +327,7 @@ bool encodeDecodeTest()
     in.custom2 = rand() % 255;
     in.custom3 = rand() % 255;
     in.minDetectionProbability = rand() % 255;
+    in.initString = "alsjfhkjlkjsa";
     in.objects.clear();
     for (int i = 0; i < 5; ++i)
     {
@@ -521,6 +528,11 @@ bool encodeDecodeTest()
             return false;
         }
     }
+    if ("" != out.initString)
+    {
+        cout << "in.initString" << endl;
+        return false;
+    }
 
     return true;
 }
@@ -610,6 +622,8 @@ bool jsonReadWriteTest()
     in.custom1 = rand() % 255;
     in.custom2 = rand() % 255;
     in.custom3 = rand() % 255;
+    in.minDetectionProbability = rand() % 255;
+    in.initString = "sfsfsfsfsf";
     in.objects.clear();
     for (int i = 0; i < 5; ++i)
     {
@@ -755,6 +769,11 @@ bool jsonReadWriteTest()
     if (in.minDetectionProbability != out.minDetectionProbability)
     {
         cout << "in.minDetectionProbability" << endl;
+        return false;
+    }
+    if (in.initString != out.initString)
+    {
+        cout << "in.initString" << endl;
         return false;
     }
 

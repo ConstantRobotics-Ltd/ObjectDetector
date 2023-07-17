@@ -1,4 +1,8 @@
+
+
 ![logo](_static/object_detector_logo.png)
+
+
 
 # **ObjectDetector interface C++ library**
 
@@ -31,8 +35,8 @@
   - [Object structure](#Object-structure)
 - [ObjectDetectorParams class description](#ObjectDetectorParams-class-description)
   - [ObjectDetectorParams class declaration](#ObjectDetectorParams-class-declaration)
-  - [Serialize video source params](#Serialize-video-source-params)
-  - [Deserialize video source params](#Deserialize-video-source-params)
+  - [Serialize object detector params](#Serialize-object-detector-params)
+  - [Deserialize object detector params](#Deserialize-object-detector-params)
   - [Read params from JSON file and write to JSON file](#Read-params-from-JSON-file-and-write-to-JSON-file)
 - [Build and connect to your project](#Build-and-connect-to-your-project)
 
@@ -40,7 +44,7 @@
 
 # Overview
 
-**ObjectDetector** C++ library provides standard interface as well defines data structures and rules for different object detectors (motion detectors, events detectors, neural networks etc.). **ObjectDetector** interface class doesn't do anything, just provides interface and defines data structures. Different object detector classes inherit interface form **ObjectDetector** C++ class. **ObjectDetector.h** file contains **ObjectDetectorParams** class, **ObjectDetectorCommand** enum, **ObjectDetectorParam** enum and includes **ObjectDetector** class declaration. **ObjectDetectorParams** class contains object detector params, list of detected objects and includes methods to encode and decode video source params.  **ObjectDetectorCommand** enum contains IDs of commands. **ObjectDetectorParam** enum contains IDs of params. All object detectors should include params and commands listed in **ObjectDetector.h** file. ObjectDetector class dependency: [**Frame**](https://github.com/ConstantRobotics-Ltd/Frame) class which describes video frame structure and pixel formats, [**ConfigReader**](https://github.com/ConstantRobotics-Ltd/ConfigReader) class which provides methods to work with JSON structures (read/write).
+**ObjectDetector** C++ library provides standard interface as well defines data structures and rules for different object detectors (motion detectors, events detectors, neural networks etc.). **ObjectDetector** interface class doesn't do anything, just provides interface and defines data structures. Different object detector classes inherit interface form **ObjectDetector** C++ class. **ObjectDetector.h** file contains **ObjectDetectorParams** class, **ObjectDetectorCommand** enum, **ObjectDetectorParam** enum and includes **ObjectDetector** class declaration. **ObjectDetectorParams** class contains object detector params, list of detected objects and includes methods to encode and decode params.  **ObjectDetectorCommand** enum contains IDs of commands. **ObjectDetectorParam** enum contains IDs of params. All object detectors should include params and commands listed in **ObjectDetector.h** file. ObjectDetector class dependency: [**Frame**](https://github.com/ConstantRobotics-Ltd/Frame) class which describes video frame structure and pixel formats, [**ConfigReader**](https://github.com/ConstantRobotics-Ltd/ConfigReader) class which provides methods to work with JSON structures (read/write).
 
 
 
@@ -347,7 +351,7 @@ static void encodeCommand(uint8_t* data, int& size, ObjectDetectorCommand id);
 | 5    | id    | Command ID **int32_t** in Little-endian format. |
 | 6    | id    | Command ID **int32_t** in Little-endian format. |
 
-**encodeCommand(...)** is static and used without **VSource** class instance. This method used on client side (control system). Command encoding example:
+**encodeCommand(...)** is static and used without **ObjectDetector** class instance. This method used on client side (control system). Command encoding example:
 
 ```cpp
 // Buffer for encoded data.
@@ -484,7 +488,7 @@ enum class ObjectDetectorParam
 };
 ```
 
-**Table 3** - Video source params description. Some params maybe unsupported by particular video source class.
+**Table 3** - Object detector params description. Some params maybe unsupported by particular object detector class.
 
 | Parameter                 | Access       | Description                                                  |
 | ------------------------- | ------------ | ------------------------------------------------------------ |
@@ -570,6 +574,8 @@ typedef struct Object
 class ObjectDetectorParams
 {
 public:
+    /// Init string. Depends on implementation.
+    std::string initString{""};
     /// Logging mode. Values: 0 - Disable, 1 - Only file,
     /// 2 - Only terminal (console), 3 - File and terminal (console).
     int logMode{0};
@@ -635,13 +641,11 @@ public:
     /// List of detected objects.
     std::vector<Object> objects;
 
-    JSON_READABLE(ObjectDetectorParams, logMode, frameBufferSize, minObjectWidth,
-                  maxObjectWidth, minObjectHeight, maxObjectHeight, minXSpeed,
-                  maxXSpeed, minYSpeed, maxYSpeed, minDetectionProbability,
-                  xDetectionCriteria, yDetectionCriteria, resetCriteria,
-                  sensitivity, scaleFactor, numThreads, type, enable,
-                  custom1, custom2, custom3);
-
+    JSON_READABLE(ObjectDetectorParams, initString, logMode, frameBufferSize,
+                  minObjectWidth, maxObjectWidth, minObjectHeight, maxObjectHeight,
+                  minXSpeed, maxXSpeed, minYSpeed, maxYSpeed, minDetectionProbability,
+                  xDetectionCriteria, yDetectionCriteria, resetCriteria, sensitivity,
+                  scaleFactor, numThreads, type, enable, custom1, custom2, custom3);
     /**
      * @brief operator =
      * @param src Source object.
@@ -649,7 +653,7 @@ public:
      */
     ObjectDetectorParams& operator= (const ObjectDetectorParams& src);
     /**
-     * @brief Encode params.
+     * @brief Encode params. Method doesn't encode initString.
      * @param data Pointer to data buffer.
      * @param size Size of data.
      * @param mask Pointer to parameters mask.
@@ -657,7 +661,7 @@ public:
     void encode(uint8_t* data, int& size,
                 ObjectDetectorParamsMask* mask = nullptr);
     /**
-     * @brief Decode params.
+     * @brief Decode params. Method doesn't decode initString;
      * @param data Pointer to data.
      * @return TRUE is params decoded or FALSE if not.
      */
@@ -669,6 +673,7 @@ public:
 
 | Field                   | Type        | Description                                                  |
 | ----------------------- | ----------- | ------------------------------------------------------------ |
+| initString              | string      | Init string. Depends on implementation.                      |
 | logMode                 | int         | Logging mode. Values: 0 - Disable, 1 - Only file, 2 - Only terminal, 3 - File and terminal. |
 | frameBufferSize         | int         | Frame buffer size. Depends on implementation. It can be buffer size for image filtering or can be buffer size to collect frames for processing. |
 | minObjectWidth          | int         | Minimum object width to be detected, pixels. To be detected object's width must be >= minObjectWidth. |
@@ -700,7 +705,7 @@ public:
 
 ## Serialize object detector params
 
-**ObjectDetectorParams** class provides method **encode(...)** to serialize object detector params (fields of ObjectDetectorParams class, see Table 5). Serialization of object detector params necessary in case when you need to send video source params via communication channels. Method provides options to exclude particular parameters from serialization. To do this method inserts binary mask (3 bytes) where each bit represents particular parameter and **decode(...)** method recognizes it. Method declaration:
+**ObjectDetectorParams** class provides method **encode(...)** to serialize object detector params (fields of ObjectDetectorParams class, see Table 5). Serialization of object detector params necessary in case when you need to send params via communication channels. Method provides options to exclude particular parameters from serialization. To do this method inserts binary mask (3 bytes) where each bit represents particular parameter and **decode(...)** method recognizes it. Method doesn't encode initString. Method declaration:
 
 ```cpp
 void encode(uint8_t* data, int& size, ObjectDetectorParamsMask* mask = nullptr);
@@ -748,9 +753,23 @@ Example without parameters mask:
 
 ```cpp
 // Prepare random params.
-VSourceParams in;
-in.initString = "alsfghljb";
-in.logLevel = 0;
+ObjectDetectorParams in;
+in.logMode = rand() % 255;
+in.objects.clear();
+for (int i = 0; i < 5; ++i)
+{
+    Object obj;
+    obj.id = rand() % 255;
+    obj.type = rand() % 255;
+    obj.width = rand() % 255;
+    obj.height = rand() % 255;
+    obj.x = rand() % 255;
+    obj.y = rand() % 255;
+    obj.vX = rand() % 255;
+    obj.vY = rand() % 255;
+    obj.p = rand() % 255;
+    in.objects.push_back(obj);
+}
 
 // Encode data.
 uint8_t data[1024];
@@ -759,97 +778,166 @@ in.encode(data, size);
 cout << "Encoded data size: " << size << " bytes" << endl;
 ```
 
-Example without parameters mask:
+Example with parameters mask:
 
 ```cpp
 // Prepare random params.
-VSourceParams in;
-in.initString = "alsfghljb";
-in.logLevel = 0;
+ObjectDetectorParams in;
+in.logMode = rand() % 255;
+in.objects.clear();
+for (int i = 0; i < 5; ++i)
+{
+    Object obj;
+    obj.id = rand() % 255;
+    obj.type = rand() % 255;
+    obj.width = rand() % 255;
+    obj.height = rand() % 255;
+    obj.x = rand() % 255;
+    obj.y = rand() % 255;
+    obj.vX = rand() % 255;
+    obj.vY = rand() % 255;
+    obj.p = rand() % 255;
+    in.objects.push_back(obj);
+}
 
-// Prepare params mask.
-VSourceParamsMask mask;
-mask.logLevel = false; // Exclude logLevel. Others by default.
+// Prepare mask.
+ObjectDetectorParamsMask mask;
+mask.logMode = false;
 
 // Encode data.
 uint8_t data[1024];
 int size = 0;
-in.encode(data, size, &mask);
+in.encode(data, size, &mask)
 cout << "Encoded data size: " << size << " bytes" << endl;
 ```
 
 
 
-## Deserialize video source params
+## Deserialize object detector params
 
-**VSourceParams** class provides method **decode(...)** to deserialize video source params (fields of VSourceParams class, see Table 4). Deserialization of video source params necessary in case when you need to receive video source params via communication channels. Method doesn't decode fields: **initString** and **fourcc**. Method automatically recognizes which parameters were serialized by **encode(...)** method. Method declaration:
+**ObjectDetectorParams** class provides method **decode(...)** to deserialize params (fields of ObjectDetectorParams class, see Table 5). Deserialization of params necessary in case when you need to receive params via communication channels. Method automatically recognizes which parameters were serialized by **encode(...)** method. Method doesn't decode initString. Method declaration:
 
 ```cpp
 bool decode(uint8_t* data);
 ```
 
-| Parameter | Value                                                        |
-| --------- | ------------------------------------------------------------ |
-| data      | Pointer to encode data buffer. Data size should be at least **43** bytes. |
+| Parameter | Value                          |
+| --------- | ------------------------------ |
+| data      | Pointer to encode data buffer. |
 
 **Returns:** TRUE if data decoded (deserialized) or FALSE if not.
 
 Example:
 
 ```cpp
+// Prepare random params.
+ObjectDetectorParams in;
+in.logMode = rand() % 255;
+for (int i = 0; i < 5; ++i)
+{
+    Object obj;
+    obj.id = rand() % 255;
+    obj.type = rand() % 255;
+    obj.width = rand() % 255;
+    obj.height = rand() % 255;
+    obj.x = rand() % 255;
+    obj.y = rand() % 255;
+    obj.vX = rand() % 255;
+    obj.vY = rand() % 255;
+    obj.p = rand() % 255;
+    in.objects.push_back(obj);
+}
+
 // Encode data.
-VSourceParams in;
 uint8_t data[1024];
 int size = 0;
 in.encode(data, size);
-
 cout << "Encoded data size: " << size << " bytes" << endl;
 
 // Decode data.
-VSourceParams out;
+ObjectDetectorParams out;
 if (!out.decode(data))
+{
     cout << "Can't decode data" << endl;
+    return false;
+}
 ```
 
 
 
 ## Read params from JSON file and write to JSON file
 
-**VSource** library depends on **ConfigReader** library which provides method to read params from JSON file and to write params to JSON file. Example of writing and reading params to JSON file:
+**ObjectDetector** library depends on **ConfigReader** library which provides method to read params from JSON file and to write params to JSON file. Example of writing and reading params to JSON file:
 
 ```cpp
+// Prepare random params.
+ObjectDetectorParams in;
+in.logMode = rand() % 255;
+in.objects.clear();
+for (int i = 0; i < 5; ++i)
+{
+    Object obj;
+    obj.id = rand() % 255;
+    obj.type = rand() % 255;
+    obj.width = rand() % 255;
+    obj.height = rand() % 255;
+    obj.x = rand() % 255;
+    obj.y = rand() % 255;
+    obj.vX = rand() % 255;
+    obj.vY = rand() % 255;
+    obj.p = rand() % 255;
+    in.objects.push_back(obj);
+}
+
 // Write params to file.
-VSurceParams in;
 cr::utils::ConfigReader inConfig;
-inConfig.set(in, "vSourceParams");
-inConfig.writeToFile("TestVSourceParams.json");
+inConfig.set(in, "ObjectDetectorParams");
+inConfig.writeToFile("ObjectDetectorParams.json");
 
 // Read params from file.
 cr::utils::ConfigReader outConfig;
-if(!outConfig.readFromFile("TestVSourceParams.json"))
+if(!outConfig.readFromFile("ObjectDetectorParams.json"))
 {
     cout << "Can't open config file" << endl;
     return false;
 }
+
+ObjectDetectorParams out;
+if(!outConfig.get(out, "ObjectDetectorParams"))
+{
+    cout << "Can't read params from file" << endl;
+    return false;
+}
 ```
 
-**TestVSourceParams.json** will look like:
+**ObjectDetectorParams.json** will look like:
 
 ```json
 {
-    "vSourceParams": {
-        "custom1": 96.0,
-        "custom2": 212.0,
-        "custom3": 243.0,
-        "exposureMode": 63,
-        "focusMode": 167,
-        "fourcc": "skdfjhvk",
-        "fps": 205.0,
-        "gainMode": 84,
-        "height": 143,
-        "logLevel": 92,
-        "source": "alsfghljb",
-        "width": 204
+    "ObjectDetectorParams": {
+        "custom1": 57.0,
+        "custom2": 244.0,
+        "custom3": 68.0,
+        "enable": false,
+        "frameBufferSize": 200,
+        "initString": "sfsfsfsfsf",
+        "logMode": 111,
+        "maxObjectHeight": 103,
+        "maxObjectWidth": 199,
+        "maxXSpeed": 104.0,
+        "maxYSpeed": 234.0,
+        "minDetectionProbability": 53.0,
+        "minObjectHeight": 191,
+        "minObjectWidth": 149,
+        "minXSpeed": 213.0,
+        "minYSpeed": 43.0,
+        "numThreads": 33,
+        "resetCriteria": 62,
+        "scaleFactor": 85,
+        "sensitivity": 135.0,
+        "type": 178,
+        "xDetectionCriteria": 224,
+        "yDetectionCriteria": 199
     }
 }
 ```
@@ -939,7 +1027,7 @@ if (${PARENT}_SUBMODULE_OBJECT_DETECTOR)
 endif()
 ```
 
-File **3rdparty/CMakeLists.txt** adds folder **VSource** to your project and excludes test application (VSource class test applications) from compiling. Your repository new structure will be:
+File **3rdparty/CMakeLists.txt** adds folder **ObjectDetector** to your project and excludes test application (ObjectDetector class test applications) from compiling. Your repository new structure will be:
 
 ```bash
 CMakeLists.txt
@@ -949,7 +1037,7 @@ src
     yourLib.cpp
 3rdparty
     CMakeLists.txt
-    VSource
+    ObjectDetector
 ```
 
 Next you need include folder 3rdparty in main **CMakeLists.txt** file of your repository. Add string at the end of your main **CMakeLists.txt**:

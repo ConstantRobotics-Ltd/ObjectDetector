@@ -75,6 +75,8 @@ typedef struct ObjectDetectorParamsMask
 class ObjectDetectorParams
 {
 public:
+    /// Init string. Depends on implementation.
+    std::string initString{""};
     /// Logging mode. Values: 0 - Disable, 1 - Only file,
     /// 2 - Only terminal (console), 3 - File and terminal (console).
     int logMode{0};
@@ -141,6 +143,7 @@ public:
     std::vector<Object> objects;
 
     JSON_READABLE(ObjectDetectorParams,
+                  initString,
                   logMode,
                   frameBufferSize,
                   minObjectWidth,
@@ -172,7 +175,7 @@ public:
     ObjectDetectorParams& operator= (const ObjectDetectorParams& src);
 
     /**
-     * @brief Encode params.
+     * @brief Encode params. Method doesn't encode initString.
      * @param data Pointer to data buffer.
      * @param size Size of data.
      * @param mask Pointer to parameters mask.
@@ -181,7 +184,7 @@ public:
                 ObjectDetectorParamsMask* mask = nullptr);
 
     /**
-     * @brief Decode params.
+     * @brief Decode params. Method doesn't decode initString;
      * @param data Pointer to data.
      * @return TRUE is params decoded or FALSE if not.
      */
