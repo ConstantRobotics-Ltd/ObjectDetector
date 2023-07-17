@@ -6,7 +6,7 @@
 
 # **ObjectDetector interface C++ library**
 
-**v1.0.0**
+**v1.0.1**
 
 ------
 
@@ -52,9 +52,10 @@
 
 **Table 1** - Library versions.
 
-| Version | Release date | What's new    |
-| ------- | ------------ | ------------- |
-| 1.0.0   | 17.07.2023   | First version |
+| Version | Release date | What's new                              |
+| ------- | ------------ | --------------------------------------- |
+| 1.0.0   | 17.07.2023   | First version.                          |
+| 1.0.1   | 17.07.2023   | - 3rdparty variable name mistake fixed. |
 
 
 
