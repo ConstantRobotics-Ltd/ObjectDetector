@@ -6,7 +6,7 @@
 
 # **ObjectDetector interface C++ library**
 
-**v1.0.1**
+**v1.1.0**
 
 ------
 
@@ -52,10 +52,11 @@
 
 **Table 1** - Library versions.
 
-| Version | Release date | What's new                              |
-| ------- | ------------ | --------------------------------------- |
-| 1.0.0   | 17.07.2023   | First version.                          |
-| 1.0.1   | 17.07.2023   | - 3rdparty variable name mistake fixed. |
+| Version | Release date | What's new                                    |
+| ------- | ------------ | --------------------------------------------- |
+| 1.0.0   | 17.07.2023   | First version.                                |
+| 1.0.1   | 17.07.2023   | - 3rdparty variable name mistake fixed.       |
+| 1.1.0   | 18.07.2023   | - Added frame ID field for detection results. |
 
 
 
@@ -528,6 +529,8 @@ typedef struct Object
 {
     /// Object ID. Must be uniques for particular object.
     int id{0};
+    /// Frame ID. Must be the same as frame ID of processed video frame.
+    int frameId{0};
     /// Object type. Depends on implementation.
     int type{0};
     /// Object rectangle width, pixels.
@@ -549,17 +552,18 @@ typedef struct Object
 
 **Table 4** - Object structure fields description.
 
-| Field  | Type  | Description                                                  |
-| ------ | ----- | ------------------------------------------------------------ |
-| id     | int   | Object ID. Must be uniques for particular object. Object detector must assign unique ID for each detected object. This is necessary for control algorithms to distinguish different objects from frame to frame. |
-| type   | int   | Object type. Depends on implementation. For example detection neural networks can detect multiple type of objects. |
-| width  | int   | Object rectangle width, pixels. Must be MIN_OBJECT_WIDTH <= width <= MAX_OBJECT_WIDTH (see **ObjectDetectorParam** enum description). |
-| height | int   | Object rectangle height, pixels. Must be MIN_OBJECT_HEIGHT <= height <= MAX_OBJECT_HEIGHT (see **ObjectDetectorParam** enum description). |
-| x      | int   | Object rectangle top-left horizontal coordinate, pixels.     |
-| y      | int   | Object rectangle top-left vertical coordinate, pixels.       |
-| vX     | float | Horizontal component of object velocity, +-pixels/frame. if it possible object detector should estimate object velocity on video frames. |
-| vY     | float | Vertical component of object velocity, +-pixels/frame. if it possible object detector should estimate object velocity on video frames. |
-| p      | float | Detection probability from 0 (minimum) to 1 (maximum). Must be p >= MIN_DETECTION_PROPABILITY (see **ObjectDetectorParam** enum description). |
+| Field   | Type  | Description                                                  |
+| ------- | ----- | ------------------------------------------------------------ |
+| id      | int   | Object ID. Must be uniques for particular object. Object detector must assign unique ID for each detected object. This is necessary for control algorithms to distinguish different objects from frame to frame. |
+| frameId | int   | Frame ID. Must be the same as frame ID of processed video frame. |
+| type    | int   | Object type. Depends on implementation. For example detection neural networks can detect multiple type of objects. |
+| width   | int   | Object rectangle width, pixels. Must be MIN_OBJECT_WIDTH <= width <= MAX_OBJECT_WIDTH (see **ObjectDetectorParam** enum description). |
+| height  | int   | Object rectangle height, pixels. Must be MIN_OBJECT_HEIGHT <= height <= MAX_OBJECT_HEIGHT (see **ObjectDetectorParam** enum description). |
+| x       | int   | Object rectangle top-left horizontal coordinate, pixels.     |
+| y       | int   | Object rectangle top-left vertical coordinate, pixels.       |
+| vX      | float | Horizontal component of object velocity, +-pixels/frame. if it possible object detector should estimate object velocity on video frames. |
+| vY      | float | Vertical component of object velocity, +-pixels/frame. if it possible object detector should estimate object velocity on video frames. |
+| p       | float | Detection probability from 0 (minimum) to 1 (maximum). Must be p >= MIN_DETECTION_PROPABILITY (see **ObjectDetectorParam** enum description). |
 
 
 

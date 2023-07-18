@@ -110,6 +110,7 @@ bool copyTest()
     {
         Object obj;
         obj.id = rand() % 255;
+        obj.frameId = rand() % 255;
         obj.type = rand() % 255;
         obj.width = rand() % 255;
         obj.height = rand() % 255;
@@ -247,6 +248,11 @@ bool copyTest()
             cout << "in.objects[" << i << "].id" << endl;
             return false;
         }
+        if (in.objects[i].frameId != out.objects[i].frameId)
+        {
+            cout << "in.objects[" << i << "].frameId" << endl;
+            return false;
+        }
         if (in.objects[i].type != out.objects[i].type)
         {
             cout << "in.objects[" << i << "].type" << endl;
@@ -333,6 +339,7 @@ bool encodeDecodeTest()
     {
         Object obj;
         obj.id = rand() % 255;
+        obj.frameId = rand() % 255;
         obj.type = rand() % 255;
         obj.width = rand() % 255;
         obj.height = rand() % 255;
@@ -485,6 +492,11 @@ bool encodeDecodeTest()
         if (in.objects[i].id != out.objects[i].id)
         {
             cout << "in.objects[" << i << "].id" << endl;
+            return false;
+        }
+        if (in.objects[i].frameId != out.objects[i].frameId)
+        {
+            cout << "in.objects[" << i << "].frameId" << endl;
             return false;
         }
         if (in.objects[i].type != out.objects[i].type)
@@ -815,6 +827,7 @@ bool encodeDecodeWithMaskTest()
     {
         Object obj;
         obj.id = rand() % 255;
+        obj.frameId = rand() % 255;
         obj.type = rand() % 255;
         obj.width = rand() % 255;
         obj.height = rand() % 255;
@@ -993,6 +1006,11 @@ bool encodeDecodeWithMaskTest()
         if (in.objects[i].id != out.objects[i].id)
         {
             cout << "in.objects[" << i << "].id" << endl;
+            return false;
+        }
+        if (in.objects[i].frameId != out.objects[i].frameId)
+        {
+            cout << "in.objects[" << i << "].frameId" << endl;
             return false;
         }
         if (in.objects[i].type != out.objects[i].type)

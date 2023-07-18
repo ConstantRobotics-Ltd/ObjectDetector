@@ -95,6 +95,7 @@ void cr::detector::ObjectDetectorParams::encode(
         for (int i = 0; i < numObjects; ++i)
         {
             memcpy(&data[pos], &objects[i].id, 4); pos += 4;
+            memcpy(&data[pos], &objects[i].frameId, 4); pos += 4;
             memcpy(&data[pos], &objects[i].type, 4); pos += 4;
             memcpy(&data[pos], &objects[i].width, 4); pos += 4;
             memcpy(&data[pos], &objects[i].height, 4); pos += 4;
@@ -245,6 +246,7 @@ void cr::detector::ObjectDetectorParams::encode(
         for (int i = 0; i < numObjects; ++i)
         {
             memcpy(&data[pos], &objects[i].id, 4); pos += 4;
+            memcpy(&data[pos], &objects[i].frameId, 4); pos += 4;
             memcpy(&data[pos], &objects[i].type, 4); pos += 4;
             memcpy(&data[pos], &objects[i].width, 4); pos += 4;
             memcpy(&data[pos], &objects[i].height, 4); pos += 4;
@@ -477,6 +479,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
         {
             cr::detector::Object obj;
             memcpy(&obj.id, &data[pos], 4); pos += 4;
+            memcpy(&obj.frameId, &data[pos], 4); pos += 4;
             memcpy(&obj.type, &data[pos], 4); pos += 4;
             memcpy(&obj.width, &data[pos], 4); pos += 4;
             memcpy(&obj.height, &data[pos], 4); pos += 4;

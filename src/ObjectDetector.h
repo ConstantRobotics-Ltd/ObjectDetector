@@ -16,6 +16,8 @@ typedef struct Object
 {
     /// Object ID. Must be uniques for particular object.
     int id{0};
+    /// Frame ID. Must be the same as frame ID of processed video frame.
+    int frameId{0};
     /// Object type. Depends on implementation.
     int type{0};
     /// Object rectangle width, pixels.
