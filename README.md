@@ -6,7 +6,7 @@
 
 # **ObjectDetector interface C++ library**
 
-**v1.1.1**
+**v1.2.0**
 
 ------
 
@@ -58,7 +58,7 @@
 | 1.0.0   | 17.07.2023   | First version.                                |
 | 1.0.1   | 17.07.2023   | - 3rdparty variable name mistake fixed.       |
 | 1.1.0   | 18.07.2023   | - Added frame ID field for detection results. |
-| 1.1.1   | 22.08.2023   | - Added new setMask method.                   |
+| 1.2.0   | 22.08.2023   | - Added new setMask method.                   |
 
 
 
@@ -180,7 +180,7 @@ std::cout << "ObjectDetector class version: " << ObjectDetector::getVersion() <<
 Console output:
 
 ```bash
-ObjectDetector class version: 1.1.1
+ObjectDetector class version: 1.2.0
 ```
 
 
