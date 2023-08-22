@@ -343,6 +343,14 @@ public:
     virtual bool detect(cr::video::Frame& frame) = 0;
 
     /**
+    * @brief Set detection mask. Detector omits image segments, where detection
+    * mask pixel values equal 0.
+    * @param mask Detection binary mask.
+    * @return TRUE if video detection mask was set or FALSE if not.
+    */
+    virtual bool setMask(cr::video::Frame mask) = 0;
+
+    /**
      * @brief Encode set param command.
      * @param data Pointer to data buffer. Must have size >= 11.
      * @param size Size of encoded data.

@@ -6,7 +6,7 @@
 
 # **ObjectDetector interface C++ library**
 
-**v1.1.0**
+**v1.1.1**
 
 ------
 
@@ -26,6 +26,7 @@
   - [getObjects method](#getObjects-method)
   - [executeCommand method](#executeCommand-method)
   - [detect method](#detect-method)
+  - [set Mask method](#setMask-method)
   - [encodeSetParamCommand method](#encodeSetParamCommand-method)
   - [encodeCommand method](#encodeCommand-method)
   - [decodeCommand method](#decodeCommand-method)
@@ -44,7 +45,7 @@
 
 # Overview
 
-**ObjectDetector** C++ library provides standard interface as well defines data structures and rules for different object detectors (motion detectors, events detectors, neural networks etc.). **ObjectDetector** interface class doesn't do anything, just provides interface and defines data structures. Different object detector classes inherit interface form **ObjectDetector** C++ class. **ObjectDetector.h** file contains **ObjectDetectorParams** class, **ObjectDetectorCommand** enum, **ObjectDetectorParam** enum and includes **ObjectDetector** class declaration. **ObjectDetectorParams** class contains object detector params, list of detected objects and includes methods to encode and decode params.  **ObjectDetectorCommand** enum contains IDs of commands. **ObjectDetectorParam** enum contains IDs of params. All object detectors should include params and commands listed in **ObjectDetector.h** file. ObjectDetector class dependency: [**Frame**](https://github.com/ConstantRobotics-Ltd/Frame) class which describes video frame structure and pixel formats, [**ConfigReader**](https://github.com/ConstantRobotics-Ltd/ConfigReader) class which provides methods to work with JSON structures (read/write).
+**ObjectDetector** C++ library provides standard interface as well defines data structures and rules for different object detectors (motion detectors, events detectors, neural networks etc.). **ObjectDetector** interface class does nothing, just provides interface and defines data structures. Different object detector classes inherit interface form **ObjectDetector** C++ class. **ObjectDetector.h** file contains **ObjectDetectorParams** class, **ObjectDetectorCommand** enum, **ObjectDetectorParam** enum and includes **ObjectDetector** class declaration. **ObjectDetectorParams** class contains object detector params, list of detected objects and includes methods to encode and decode params.  **ObjectDetectorCommand** enum contains IDs of commands. **ObjectDetectorParam** enum contains IDs of params. All object detectors should include params and commands listed in **ObjectDetector.h** file. ObjectDetector class dependency: [**Frame**](https://github.com/ConstantRobotics-Ltd/Frame) class which describes video frame structure and pixel formats, [**ConfigReader**](https://github.com/ConstantRobotics-Ltd/ConfigReader) class which provides methods to work with JSON structures (read/write).
 
 
 
@@ -57,6 +58,7 @@
 | 1.0.0   | 17.07.2023   | First version.                                |
 | 1.0.1   | 17.07.2023   | - 3rdparty variable name mistake fixed.       |
 | 1.1.0   | 18.07.2023   | - Added frame ID field for detection results. |
+| 1.1.1   | 22.08.2023   | - Added new setMask method.                   |
 
 
 
@@ -117,7 +119,14 @@ public:
      * @param frame Source video frame.
      * @return TRUE if video frame was processed or FALSE if not.
      */
-    virtual bool detect(cr::video::Frame& frame) = 0;
+    virtual bool detect(cr::video::Frame& frame) = 0;  
+    /**
+    * @brief Set detection mask. Detector omits image segments, where detection
+    * mask pixel values equal 0.
+    * @param mask Detection binary mask.
+    * @return TRUE if video detection mask was set or FALSE if not.
+    */
+    virtual bool setMask(cr::video::Frame mask) = 0;
     /**
      * @brief Encode set param command.
      * @param data Pointer to data buffer. Must have size >= 11.
@@ -171,7 +180,7 @@ std::cout << "ObjectDetector class version: " << ObjectDetector::getVersion() <<
 Console output:
 
 ```bash
-ObjectDetector class version: 1.0.0
+ObjectDetector class version: 1.1.1
 ```
 
 
@@ -261,7 +270,7 @@ virtual bool executeCommand(ObjectDetectorCommand id) = 0;
 | --------- | ------------------------------------------------------- |
 | id        | Command ID according to **ObjectDetectorCommand** enum. |
 
-**Returns:** TRUE is the command was executed or FALSE if not.
+**Returns:** TRUE if the command was executed or FALSE if not.
 
 
 
@@ -277,7 +286,23 @@ virtual bool detect(cr::video::Frame& frame) = 0;
 | --------- | ------------------------------------------------------------ |
 | frame     | Video frame for processing. Object detector processes only RAW pixel formats (BGR24, RGB24, GRAY, YUYV24, YUYV, UYVY, NV12, NV21, YV12, YU12, see **Frame** class description). |
 
-**Returns:** TRUE is the video frame was processed FALSE if not. If object detector disabled (see **ObjectDetectorParam** enum description) the method should return TRUE.
+**Returns:** TRUE if the video frame was processed FALSE if not. If object detector disabled (see **ObjectDetectorParam** enum description) the method should return TRUE.
+
+
+
+## setMask method
+
+**setMask(...)** method designed to set detection mask. Method declaration:
+
+```cpp
+virtual bool setMask(cr::video::Frame mask) = 0;
+```
+
+| Parameter | Description                                                  |
+| --------- | ------------------------------------------------------------ |
+| mask      | Detection mask. Detector omits image segments, where detection mask pixel values equal 0. |
+
+**Returns:** TRUE if the detection mask was set or FALSE if not.
 
 
 
