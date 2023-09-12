@@ -49,8 +49,16 @@ cr::detector::ObjectDetectorParams &cr::detector::ObjectDetectorParams::operator
 
 
 void cr::detector::ObjectDetectorParams::encode(
-        uint8_t* data, int& size, cr::detector::ObjectDetectorParamsMask* mask)
+    uint8_t* data, int dataBufferSize, int& size,
+    ObjectDetectorParamsMask* mask)
 {
+    // Check data buffer size.
+    if (dataBufferSize < 99)
+    {
+        size = 0;
+        return;
+    }
+
     // Encode version.
     int pos = 0;
     data[pos] = 0x02; pos += 1;
@@ -92,6 +100,17 @@ void cr::detector::ObjectDetectorParams::encode(
         memcpy(&data[pos], &minDetectionProbability, 4); pos += 4;
         int numObjects = (int)objects.size();
         memcpy(&data[pos], &numObjects, 4); pos += 4;
+
+        // Check how much object we can put into buffer.
+        int restObjects = (dataBufferSize - pos) / 40;
+        if (restObjects < 0)
+            restObjects = 0;
+        if (restObjects < numObjects)
+        {
+            numObjects = restObjects;
+            memcpy(&data[pos - 4], &numObjects, 4); pos += 4;
+        }
+
         for (int i = 0; i < numObjects; ++i)
         {
             memcpy(&data[pos], &objects[i].id, 4); pos += 4;
@@ -243,6 +262,17 @@ void cr::detector::ObjectDetectorParams::encode(
     {
         int numObjects = (int)objects.size();
         memcpy(&data[pos], &numObjects, 4); pos += 4;
+
+        // Check how much object we can put into buffer.
+        int restObjects = (dataBufferSize - pos) / 40;
+        if (restObjects < 0)
+            restObjects = 0;
+        if (restObjects < numObjects)
+        {
+            numObjects = restObjects;
+            memcpy(&data[pos - 4], &numObjects, 4); pos += 4;
+        }
+
         for (int i = 0; i < numObjects; ++i)
         {
             memcpy(&data[pos], &objects[i].id, 4); pos += 4;

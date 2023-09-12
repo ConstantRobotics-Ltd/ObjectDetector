@@ -178,11 +178,12 @@ public:
 
     /**
      * @brief Encode params. Method doesn't encode initString.
-     * @param data Pointer to data buffer.
+     * @param data Pointer to data buffer. Must have at least 99 bytes size.
+     * @param dataBufferSize Size of data buffer. Min value is 99.
      * @param size Size of data.
      * @param mask Pointer to parameters mask.
      */
-    void encode(uint8_t* data, int& size,
+    void encode(uint8_t* data, int dataBufferSize, int& size,
                 ObjectDetectorParamsMask* mask = nullptr);
 
     /**

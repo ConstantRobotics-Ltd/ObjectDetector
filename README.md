@@ -6,7 +6,7 @@
 
 # **ObjectDetector interface C++ library**
 
-**v1.2.0**
+**v1.3.0**
 
 ------
 
@@ -59,6 +59,7 @@
 | 1.0.1   | 17.07.2023   | - 3rdparty variable name mistake fixed.       |
 | 1.1.0   | 18.07.2023   | - Added frame ID field for detection results. |
 | 1.2.0   | 22.08.2023   | - Added new setMask method.                   |
+| 1.3.0   | 12.09.2023   | - Changed params serialization method.        |
 
 
 
@@ -684,11 +685,12 @@ public:
     ObjectDetectorParams& operator= (const ObjectDetectorParams& src);
     /**
      * @brief Encode params. Method doesn't encode initString.
-     * @param data Pointer to data buffer.
+     * @param data Pointer to data buffer. Must have at least 99 bytes size.
+     * @param dataBufferSize Size of data buffer. Min value is 99.
      * @param size Size of data.
      * @param mask Pointer to parameters mask.
      */
-    void encode(uint8_t* data, int& size,
+    void encode(uint8_t* data, int dataBufferSize, int& size,
                 ObjectDetectorParamsMask* mask = nullptr);
     /**
      * @brief Decode params. Method doesn't decode initString;
@@ -738,14 +740,15 @@ public:
 **ObjectDetectorParams** class provides method **encode(...)** to serialize object detector params (fields of ObjectDetectorParams class, see Table 5). Serialization of object detector params necessary in case when you need to send params via communication channels. Method provides options to exclude particular parameters from serialization. To do this method inserts binary mask (3 bytes) where each bit represents particular parameter and **decode(...)** method recognizes it. Method doesn't encode initString. Method declaration:
 
 ```cpp
-void encode(uint8_t* data, int& size, ObjectDetectorParamsMask* mask = nullptr);
+void encode(uint8_t* data, int dataBufferSize, int& size, ObjectDetectorParamsMask* mask = nullptr);
 ```
 
-| Parameter | Value                                                        |
-| --------- | ------------------------------------------------------------ |
-| data      | Pointer to data buffer. Buffer size should be at least **43** bytes. |
-| size      | Size of encoded data. 43 bytes by default.                   |
-| mask      | Parameters mask - pointer to **ObjectDetectorParamsMask** structure. **ObjectDetectorParamsMask** (declared in ObjectDetector.h file) determines flags for each field (parameter) declared in **ObjectDetectorParams** class. If the user wants to exclude any parameters from serialization, he can put a pointer to the mask. If the user wants to exclude a particular parameter from serialization, he should set the corresponding flag in the ObjectDetectorParamsMask structure. |
+| Parameter      | Value                                                        |
+| -------------- | ------------------------------------------------------------ |
+| data           | Pointer to data buffer. Buffer size should be at least **99** bytes. |
+| dataBufferSize | Size of data buffer. If the data buffer size is not large enough to serialize all detected objects (40 bytes per object), not all objects will be included in the data. |
+| size           | Size of encoded data. 99 bytes by default.                   |
+| mask           | Parameters mask - pointer to **ObjectDetectorParamsMask** structure. **ObjectDetectorParamsMask** (declared in ObjectDetector.h file) determines flags for each field (parameter) declared in **ObjectDetectorParams** class. If the user wants to exclude any parameters from serialization, he can put a pointer to the mask. If the user wants to exclude a particular parameter from serialization, he should set the corresponding flag in the ObjectDetectorParamsMask structure. |
 
 **ObjectDetectorParamsMask** structure declaration:
 
