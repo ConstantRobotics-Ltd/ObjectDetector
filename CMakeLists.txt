@@ -31,6 +31,7 @@ endif()
 ################################################################################
 SET(${PARENT}_OBJECT_DETECTOR                ON  CACHE BOOL "" ${REWRITE_FORCE})
 SET(${PARENT}_OBJECT_DETECTOR_TEST           ON  CACHE BOOL "" ${REWRITE_FORCE})
+SET(${PARENT}_OBJECT_DETECTOR_EXAMPLE        ON  CACHE BOOL "" ${REWRITE_FORCE})
 
 
 
@@ -45,4 +46,8 @@ endif()
 
 if (${PARENT}_OBJECT_DETECTOR_TEST)
     add_subdirectory(test)
+endif()
+
+if (${PARENT}_OBJECT_DETECTOR_EXAMPLE)
+    add_subdirectory(example)
 endif()

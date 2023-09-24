@@ -179,19 +179,21 @@ public:
     /**
      * @brief Encode params. Method doesn't encode initString.
      * @param data Pointer to data buffer. Must have at least 99 bytes size.
-     * @param dataBufferSize Size of data buffer. Min value is 99.
+     * @param bufferSize Size of data buffer. Min value is 99.
      * @param size Size of data.
      * @param mask Pointer to parameters mask.
+     * @return TRUE if params encoded or FALSE if not.
      */
-    void encode(uint8_t* data, int dataBufferSize, int& size,
+    bool encode(uint8_t* data, int bufferSize, int& size,
                 ObjectDetectorParamsMask* mask = nullptr);
 
     /**
-     * @brief Decode params. Method doesn't decode initString;
+     * @brief Decode params. Method doesn't decode initString.
      * @param data Pointer to data.
+     * @param dataSize Size of data.
      * @return TRUE is params decoded or FALSE if not.
      */
-    bool decode(uint8_t* data);
+    bool decode(uint8_t* data, int dataSize);
 };
 
 
@@ -384,6 +386,14 @@ public:
                              ObjectDetectorParam& paramId,
                              ObjectDetectorCommand& commandId,
                              float& value);
+
+    /**
+     * @brief Decode command.
+     * @param data Pointer to command data.
+     * @param size Size of data.
+     * @return TRUE if command decoded and executed or FALSE if not.
+     */
+    virtual bool decodeAndExecuteCommand(uint8_t* data, int size) = 0;
 };
 }
 }

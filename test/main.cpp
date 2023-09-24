@@ -360,7 +360,7 @@ bool encodeDecodeTest()
 
     // Decode data.
     ObjectDetectorParams out;
-    if (!out.decode(data))
+    if (!out.decode(data, size))
     {
         cout << "Can't decode data" << endl;
         return false;
@@ -874,7 +874,7 @@ bool encodeDecodeWithMaskTest()
 
     // Decode data.
     ObjectDetectorParams out;
-    if (!out.decode(data))
+    if (!out.decode(data, size))
     {
         cout << "Can't decode data" << endl;
         return false;

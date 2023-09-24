@@ -48,15 +48,15 @@ cr::detector::ObjectDetectorParams &cr::detector::ObjectDetectorParams::operator
 
 
 
-void cr::detector::ObjectDetectorParams::encode(
-    uint8_t* data, int dataBufferSize, int& size,
+bool cr::detector::ObjectDetectorParams::encode(
+    uint8_t* data, int bufferSize, int& size,
     ObjectDetectorParamsMask* mask)
 {
     // Check data buffer size.
-    if (dataBufferSize < 99)
+    if (bufferSize < 99)
     {
         size = 0;
-        return;
+        return false;
     }
 
     // Encode version.
@@ -102,7 +102,7 @@ void cr::detector::ObjectDetectorParams::encode(
         memcpy(&data[pos], &numObjects, 4); pos += 4;
 
         // Check how much object we can put into buffer.
-        int restObjects = (dataBufferSize - pos) / 40;
+        int restObjects = (bufferSize - pos) / 40;
         if (restObjects < 0)
             restObjects = 0;
         if (restObjects < numObjects)
@@ -127,7 +127,7 @@ void cr::detector::ObjectDetectorParams::encode(
 
         size = pos;
 
-        return;
+        return true;
     }
 
     // Prepare mask.
@@ -264,7 +264,7 @@ void cr::detector::ObjectDetectorParams::encode(
         memcpy(&data[pos], &numObjects, 4); pos += 4;
 
         // Check how much object we can put into buffer.
-        int restObjects = (dataBufferSize - pos) / 40;
+        int restObjects = (bufferSize - pos) / 40;
         if (restObjects < 0)
             restObjects = 0;
         if (restObjects < numObjects)
@@ -294,12 +294,18 @@ void cr::detector::ObjectDetectorParams::encode(
     }
 
     size = pos;
+
+    return true;
 }
 
 
 
-bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
+bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
 {
+    // Check data size.
+    if (dataSize < 6)
+        return false;
+
     // Check header.
     if (data[0] != 0x02)
         return false;
@@ -313,6 +319,8 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
     int pos = 6;
     if ((data[3] & (uint8_t)128) == (uint8_t)128)
     {
+        if (dataSize < pos + 4)
+            return false;
         memcpy(&logMode, &data[pos], 4); pos += 4;
     }
     else
@@ -321,6 +329,8 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
     }
     if ((data[3] & (uint8_t)64) == (uint8_t)64)
     {
+        if (dataSize < pos + 4)
+            return false;
         memcpy(&frameBufferSize, &data[pos], 4); pos += 4;
     }
     else
@@ -329,6 +339,8 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
     }
     if ((data[3] & (uint8_t)32) == (uint8_t)32)
     {
+        if (dataSize < pos + 4)
+            return false;
         memcpy(&minObjectWidth, &data[pos], 4); pos += 4;
     }
     else
@@ -337,6 +349,8 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
     }
     if ((data[3] & (uint8_t)16) == (uint8_t)16)
     {
+        if (dataSize < pos + 4)
+            return false;
         memcpy(&maxObjectWidth, &data[pos], 4); pos += 4;
     }
     else
@@ -345,6 +359,8 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
     }
     if ((data[3] & (uint8_t)8) == (uint8_t)8)
     {
+        if (dataSize < pos + 4)
+            return false;
         memcpy(&minObjectHeight, &data[pos], 4); pos += 4;
     }
     else
@@ -353,6 +369,8 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
     }
     if ((data[3] & (uint8_t)4) == (uint8_t)4)
     {
+        if (dataSize < pos + 4)
+            return false;
         memcpy(&maxObjectHeight, &data[pos], 4); pos += 4;
     }
     else
@@ -361,6 +379,8 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
     }
     if ((data[3] & (uint8_t)2) == (uint8_t)2)
     {
+        if (dataSize < pos + 4)
+            return false;
         memcpy(&minXSpeed, &data[pos], 4); pos += 4;
     }
     else
@@ -369,6 +389,8 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
     }
     if ((data[3] & (uint8_t)1) == (uint8_t)1)
     {
+        if (dataSize < pos + 4)
+            return false;
         memcpy(&maxXSpeed, &data[pos], 4); pos += 4;
     }
     else
@@ -380,6 +402,8 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
 
     if ((data[4] & (uint8_t)128) == (uint8_t)128)
     {
+        if (dataSize < pos + 4)
+            return false;
         memcpy(&minYSpeed, &data[pos], 4); pos += 4;
     }
     else
@@ -388,6 +412,8 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
     }
     if ((data[4] & (uint8_t)64) == (uint8_t)64)
     {
+        if (dataSize < pos + 4)
+            return false;
         memcpy(&maxYSpeed, &data[pos], 4); pos += 4;
     }
     else
@@ -396,6 +422,8 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
     }
     if ((data[4] & (uint8_t)32) == (uint8_t)32)
     {
+        if (dataSize < pos + 4)
+            return false;
         memcpy(&xDetectionCriteria, &data[pos], 4); pos += 4;
     }
     else
@@ -404,6 +432,8 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
     }
     if ((data[4] & (uint8_t)16) == (uint8_t)16)
     {
+        if (dataSize < pos + 4)
+            return false;
         memcpy(&yDetectionCriteria, &data[pos], 4); pos += 4;
     }
     else
@@ -412,6 +442,8 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
     }
     if ((data[4] & (uint8_t)8) == (uint8_t)8)
     {
+        if (dataSize < pos + 4)
+            return false;
         memcpy(&resetCriteria, &data[pos], 4); pos += 4;
     }
     else
@@ -420,6 +452,8 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
     }
     if ((data[4] & (uint8_t)4) == (uint8_t)4)
     {
+        if (dataSize < pos + 4)
+            return false;
         memcpy(&sensitivity, &data[pos], 4); pos += 4;
     }
     else
@@ -428,6 +462,8 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
     }
     if ((data[4] & (uint8_t)2) == (uint8_t)2)
     {
+        if (dataSize < pos + 4)
+            return false;
         memcpy(&scaleFactor, &data[pos], 4); pos += 4;
     }
     else
@@ -436,6 +472,8 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
     }
     if ((data[4] & (uint8_t)1) == (uint8_t)1)
     {
+        if (dataSize < pos + 4)
+            return false;
         memcpy(&numThreads, &data[pos], 4); pos += 4;
     }
     else
@@ -446,6 +484,8 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
 
     if ((data[5] & (uint8_t)128) == (uint8_t)128)
     {
+        if (dataSize < pos + 4)
+            return false;
         memcpy(&processingTimeMks, &data[pos], 4); pos += 4;
     }
     else
@@ -454,6 +494,8 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
     }
     if ((data[5] & (uint8_t)64) == (uint8_t)64)
     {
+        if (dataSize < pos + 4)
+            return false;
         memcpy(&type, &data[pos], 4); pos += 4;
     }
     else
@@ -462,6 +504,8 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
     }
     if ((data[5] & (uint8_t)32) == (uint8_t)32)
     {
+        if (dataSize < pos + 1)
+            return false;
         enable = data[pos] == 0x00 ? false : true; pos += 1;
     }
     else
@@ -470,6 +514,8 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
     }
     if ((data[5] & (uint8_t)16) == (uint8_t)16)
     {
+        if (dataSize < pos + 4)
+            return false;
         memcpy(&custom1, &data[pos], 4); pos += 4;
     }
     else
@@ -478,6 +524,8 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
     }
     if ((data[5] & (uint8_t)8) == (uint8_t)8)
     {
+        if (dataSize < pos + 4)
+            return false;
         memcpy(&custom2, &data[pos], 4); pos += 4;
     }
     else
@@ -486,6 +534,8 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
     }
     if ((data[5] & (uint8_t)4) == (uint8_t)4)
     {
+        if (dataSize < pos + 4)
+            return false;
         memcpy(&custom3, &data[pos], 4); pos += 4;
     }
     else
@@ -494,6 +544,8 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data)
     }
     if ((data[5] & (uint8_t)2) == (uint8_t)2)
     {
+        if (dataSize < pos + 4)
+            return false;
         memcpy(&minDetectionProbability, &data[pos], 4); pos += 4;
     }
     else
