@@ -321,9 +321,9 @@ public:
 
     /**
      * @brief Get object detector params structure.
-     * @return Object detector params structure.
+     * @param params Object detector params object.
      */
-    virtual ObjectDetectorParams getParams() = 0;
+    virtual void getParams(ObjectDetectorParams& params) = 0;
 
     /**
      * @brief Get list of objects.

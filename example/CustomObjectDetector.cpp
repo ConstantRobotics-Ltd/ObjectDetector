@@ -259,9 +259,9 @@ float cr::detector::CustomObjectDetector::getParam(ObjectDetectorParam id)
 
 
 
-cr::detector::ObjectDetectorParams cr::detector::CustomObjectDetector::getParams()
+void cr::detector::CustomObjectDetector::getParams(cr::detector::ObjectDetectorParams& params)
 {
-    return m_params;
+    params = m_params;
 }
 
 

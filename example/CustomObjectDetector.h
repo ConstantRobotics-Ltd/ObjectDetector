@@ -31,7 +31,7 @@ public:
     float getParam(ObjectDetectorParam id);
 
     /// Get object detector params structure.
-    ObjectDetectorParams getParams();
+    void getParams(ObjectDetectorParams& params);
 
     /// Get list of objects.
     std::vector<Object> getObjects();

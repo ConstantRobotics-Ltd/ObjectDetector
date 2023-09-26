@@ -4,7 +4,7 @@
 
 # **ObjectDetector interface C++ library**
 
-**v1.4.0**
+**v1.5.0**
 
 
 
@@ -62,6 +62,7 @@
 | 1.2.0   | 22.08.2023   | - Added new setMask method.                                  |
 | 1.3.0   | 12.09.2023   | - Changed params serialization method.                       |
 | 1.4.0   | 24.09.2023   | - Updated encode(...) and decode(...) methods of ObjectDetectorParams.<br />- Added decodeAndExecuteCommand(...) method.<br />- Added example of object detector implementation. |
+| 1.5.0   | 26.09.2023   | - Signature of getParams(...) method changed.                |
 
 
 
@@ -120,7 +121,7 @@ public:
     virtual float getParam(ObjectDetectorParam id) = 0;
 
     /// Get object detector params structure.
-    virtual ObjectDetectorParams getParams() = 0;
+    virtual void getParams(ObjectDetectorParams& params) = 0;
 
     /// Get list of objects.
     virtual std::vector<Object> getObjects() = 0;
@@ -232,10 +233,12 @@ virtual float getParam(ObjectDetectorParam id) = 0;
 **getParams(...)** method returns object detector params class object as well a list of detected objects. The particular implementation of the object detector must provide thread-safe **getParams(...)** method call. This means that the **getParams(...)** method can be safely called from any thread. Method declaration:
 
 ```cpp
-virtual ObjectDetectorParams getParams() = 0;
+virtual void getParams(ObjectDetectorParams& params) = 0;
 ```
 
-**Returns:** object detector parameters structure (see [**ObjectDetectorParams class**](#ObjectDetectorParams-class-description) description).
+| Parameter | Description                                          |
+| --------- | ---------------------------------------------------- |
+| params    | Object detector params object (ObjectDetectorParams) |
 
 
 
@@ -320,7 +323,7 @@ static void encodeSetParamCommand(uint8_t* data, int& size, ObjectDetectorParam 
 | ---- | ----- | -------------------------------------------------- |
 | 0    | 0x01  | SET_PARAM command header value.                    |
 | 1    | 0x01  | Major version of ObjectDetector class.             |
-| 2    | 0x04  | Minor version of ObjectDetector class.             |
+| 2    | 0x05  | Minor version of ObjectDetector class.             |
 | 3    | id    | Parameter ID **int32_t** in Little-endian format.  |
 | 4    | id    | Parameter ID **int32_t** in Little-endian format.  |
 | 5    | id    | Parameter ID **int32_t** in Little-endian format.  |
@@ -365,7 +368,7 @@ static void encodeCommand(uint8_t* data, int& size, ObjectDetectorCommand id);
 | ---- | ----- | ----------------------------------------------- |
 | 0    | 0x00  | COMMAND header value.                           |
 | 1    | 0x01  | Major version of ObjectDetector class.          |
-| 2    | 0x04  | Minor version of ObjectDetector class.          |
+| 2    | 0x05  | Minor version of ObjectDetector class.          |
 | 3    | id    | Command ID **int32_t** in Little-endian format. |
 | 4    | id    | Command ID **int32_t** in Little-endian format. |
 | 5    | id    | Command ID **int32_t** in Little-endian format. |
@@ -1119,7 +1122,7 @@ public:
     float getParam(ObjectDetectorParam id);
 
     /// Get object detector params structure.
-    ObjectDetectorParams getParams();
+    void getParams(ObjectDetectorParams& params);
 
     /// Get list of objects.
     std::vector<Object> getObjects();
