@@ -4,7 +4,7 @@
 
 # **ObjectDetector interface C++ library**
 
-**v1.5.0**
+**v1.5.1**
 
 
 
@@ -63,6 +63,7 @@
 | 1.3.0   | 12.09.2023   | - Changed params serialization method.                       |
 | 1.4.0   | 24.09.2023   | - Updated encode(...) and decode(...) methods of ObjectDetectorParams.<br />- Added decodeAndExecuteCommand(...) method.<br />- Added example of object detector implementation. |
 | 1.5.0   | 26.09.2023   | - Signature of getParams(...) method changed.                |
+| 1.5.1   | 13.11.2023   | - Frame class updated.                                       |
 
 
 
