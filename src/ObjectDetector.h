@@ -292,6 +292,11 @@ class ObjectDetector
 public:
 
     /**
+     * @brief Class destructor.
+     */
+    virtual ~ObjectDetector();
+
+    /**
      * @brief Get string of current library version.
      * @return String of current library version.
      */

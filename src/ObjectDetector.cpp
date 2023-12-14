@@ -3,6 +3,13 @@
 
 
 
+cr::detector::ObjectDetector::~ObjectDetector()
+{
+    
+}
+
+
+
 std::string cr::detector::ObjectDetector::getVersion()
 {
     return OBJECT_DETECTOR_VERSION;

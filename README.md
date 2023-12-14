@@ -4,7 +4,7 @@
 
 # **ObjectDetector interface C++ library**
 
-**v1.5.1**
+**v1.6.1**
 
 
 
@@ -64,6 +64,7 @@
 | 1.4.0   | 24.09.2023   | - Updated encode(...) and decode(...) methods of ObjectDetectorParams.<br />- Added decodeAndExecuteCommand(...) method.<br />- Added example of object detector implementation. |
 | 1.5.0   | 26.09.2023   | - Signature of getParams(...) method changed.                |
 | 1.5.1   | 13.11.2023   | - Frame class updated.                                       |
+| 1.6.1   | 14.12.2023   | - Virtual destructor added.<br />- Frame class updated.      |
 
 
 
@@ -108,6 +109,9 @@ src ------------------------------ Folder with source code of the library.
 class ObjectDetector
 {
 public:
+
+    /// Class destructor.
+    virtual ~ObjectDetector();
 
     /// Get string of current library version.
     static std::string getVersion();
@@ -175,7 +179,7 @@ std::cout << "ObjectDetector class version: " << ObjectDetector::getVersion() <<
 Console output:
 
 ```bash
-ObjectDetector class version: 1.4.0
+ObjectDetector class version: 1.6.1
 ```
 
 
