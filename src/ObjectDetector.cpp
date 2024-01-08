@@ -21,7 +21,9 @@ cr::detector::ObjectDetectorParams &cr::detector::ObjectDetectorParams::operator
 {
     // Check yourself.
     if (this == &src)
+    {
         return *this;
+    }  
 
     // Copy params.
     logMode = src.logMode;
@@ -152,34 +154,36 @@ bool cr::detector::ObjectDetectorParams::encode(
 
     // Prepare mask.
     data[pos] = 0;
-    data[pos] = data[pos] | (mask->logMode ? (uint8_t)128 : (uint8_t)0);
-    data[pos] = data[pos] | (mask->frameBufferSize ? (uint8_t)64 : (uint8_t)0);
-    data[pos] = data[pos] | (mask->minObjectWidth ? (uint8_t)32 : (uint8_t)0);
-    data[pos] = data[pos] | (mask->maxObjectWidth ? (uint8_t)16 : (uint8_t)0);
-    data[pos] = data[pos] | (mask->minObjectHeight ? (uint8_t)8 : (uint8_t)0);
-    data[pos] = data[pos] | (mask->maxObjectHeight ? (uint8_t)4 : (uint8_t)0);
-    data[pos] = data[pos] | (mask->minXSpeed ? (uint8_t)2 : (uint8_t)0);
-    data[pos] = data[pos] | (mask->maxXSpeed ? (uint8_t)1 : (uint8_t)0);
+    data[pos] = data[pos] | (mask->logMode ? static_cast<uint8_t>(128) : static_cast<uint8_t>(0));
+    data[pos] = data[pos] | (mask->frameBufferSize ? static_cast<uint8_t>(64) : static_cast<uint8_t>(0));
+    data[pos] = data[pos] | (mask->minObjectWidth ? static_cast<uint8_t>(32) : static_cast<uint8_t>(0));
+    data[pos] = data[pos] | (mask->maxObjectWidth ? static_cast<uint8_t>(16) : static_cast<uint8_t>(0));
+    data[pos] = data[pos] | (mask->minObjectHeight ? static_cast<uint8_t>(8) : static_cast<uint8_t>(0));
+    data[pos] = data[pos] | (mask->maxObjectHeight ? static_cast<uint8_t>(4) : static_cast<uint8_t>(0));
+    data[pos] = data[pos] | (mask->minXSpeed ? static_cast<uint8_t>(2) : static_cast<uint8_t>(0));
+    data[pos] = data[pos] | (mask->maxXSpeed ? static_cast<uint8_t>(1) : static_cast<uint8_t>(0));
     pos += 1;
     data[pos] = 0;
-    data[pos] = data[pos] | (mask->minYSpeed ? (uint8_t)128 : (uint8_t)0);
-    data[pos] = data[pos] | (mask->maxYSpeed ? (uint8_t)64 : (uint8_t)0);
-    data[pos] = data[pos] | (mask->xDetectionCriteria ? (uint8_t)32 : (uint8_t)0);
-    data[pos] = data[pos] | (mask->yDetectionCriteria ? (uint8_t)16 : (uint8_t)0);
-    data[pos] = data[pos] | (mask->resetCriteria ? (uint8_t)8 : (uint8_t)0);
-    data[pos] = data[pos] | (mask->sensitivity ? (uint8_t)4 : (uint8_t)0);
-    data[pos] = data[pos] | (mask->scaleFactor ? (uint8_t)2 : (uint8_t)0);
-    data[pos] = data[pos] | (mask->numThreads ? (uint8_t)1 : (uint8_t)0);
+    data[pos] = data[pos] | (mask->minYSpeed ? static_cast<uint8_t>(128) : static_cast<uint8_t>(0));
+    data[pos] = data[pos] | (mask->maxYSpeed ? static_cast<uint8_t>(64) : static_cast<uint8_t>(0));
+    data[pos] = data[pos] | (mask->xDetectionCriteria ? static_cast<uint8_t>(32) : static_cast<uint8_t>(0));
+    data[pos] = data[pos] | (mask->yDetectionCriteria ? static_cast<uint8_t>(16) : static_cast<uint8_t>(0));
+    data[pos] = data[pos] | (mask->resetCriteria ? static_cast<uint8_t>(8) : static_cast<uint8_t>(0));
+    data[pos] = data[pos] | (mask->sensitivity ? static_cast<uint8_t>(4) : static_cast<uint8_t>(0));
+    data[pos] = data[pos] | (mask->scaleFactor ? static_cast<uint8_t>(2) : static_cast<uint8_t>(0));
+    data[pos] = data[pos] | (mask->numThreads ? static_cast<uint8_t>(1) : static_cast<uint8_t>(0));
     pos += 1;
     data[pos] = 0;
-    data[pos] = data[pos] | (mask->processingTimeMks ? (uint8_t)128 : (uint8_t)0);
-    data[pos] = data[pos] | (mask->type ? (uint8_t)64 : (uint8_t)0);
-    data[pos] = data[pos] | (mask->enable ? (uint8_t)32 : (uint8_t)0);
-    data[pos] = data[pos] | (mask->custom1 ? (uint8_t)16 : (uint8_t)0);
-    data[pos] = data[pos] | (mask->custom2 ? (uint8_t)8 : (uint8_t)0);
-    data[pos] = data[pos] | (mask->custom3 ? (uint8_t)4 : (uint8_t)0);
-    data[pos] = data[pos] | (mask->minDetectionProbability ? (uint8_t)2 : (uint8_t)0);
-    data[pos] = data[pos] | (mask->objects ? (uint8_t)1 : (uint8_t)0);
+    data[pos] = data[pos] | (mask->processingTimeMks ? static_cast<uint8_t>(128) : static_cast<uint8_t>(0));
+    data[pos] = data[pos] | (mask->type ? static_cast<uint8_t>(64) : static_cast<uint8_t>(0));
+    data[pos] = data[pos] | (mask->enable ? static_cast<uint8_t>(32) : static_cast<uint8_t>(0));
+    data[pos] = data[pos] | (mask->custom1 ? static_cast<uint8_t>(16) : static_cast<uint8_t>(0));
+    data[pos] = data[pos] | (mask->custom2 ? static_cast<uint8_t>(8) : static_cast<uint8_t>(0));
+    data[pos] = data[pos] | (mask->custom3 ? static_cast<uint8_t>(4) : static_cast<uint8_t>(0));
+    data[pos] = data[pos] | (mask->minDetectionProbability ? static_cast<uint8_t>(2) : static_cast<uint8_t>(0));
+    data[pos] = data[pos] | (mask->objects ? static_cast<uint8_t>(1) : static_cast<uint8_t>(0));
+    pos += 1;
+    data[pos] = 0;
     data[pos] = data[pos] | (mask->initString ? static_cast<uint8_t>(128) : static_cast<uint8_t>(0));
     data[pos] = data[pos] | (mask->classNames ? static_cast<uint8_t>(64) : static_cast<uint8_t>(0));
     pos += 1;
@@ -338,21 +342,27 @@ bool cr::detector::ObjectDetectorParams::encode(
 bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
 {
     // Check data size.
-    if (dataSize < 6)
+    if (dataSize < 7)
+    {
         return false;
+    }
 
     // Check header.
     if (data[0] != 0x02)
+    {
         return false;
+    }
 
-    // Check version version.
+    // Check version.
     if (data[1] != OBJECT_DETECTOR_MAJOR_VERSION ||
         data[2] != OBJECT_DETECTOR_MINOR_VERSION)
+    {
         return false;
+    }
 
     // Decode data.
-    int pos = 6;
-    if ((data[3] & (uint8_t)128) == (uint8_t)128)
+    int pos = 7;
+    if ((data[3] & static_cast<uint8_t>(128)) == static_cast<uint8_t>(128))
     {
         if (dataSize < pos + 4)
             return false;
@@ -362,7 +372,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
     {
         logMode = 0;
     }
-    if ((data[3] & (uint8_t)64) == (uint8_t)64)
+    if ((data[3] & static_cast<uint8_t>(64)) == static_cast<uint8_t>(64))
     {
         if (dataSize < pos + 4)
             return false;
@@ -372,7 +382,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
     {
         frameBufferSize = 0;
     }
-    if ((data[3] & (uint8_t)32) == (uint8_t)32)
+    if ((data[3] & static_cast<uint8_t>(32)) == static_cast<uint8_t>(32))
     {
         if (dataSize < pos + 4)
             return false;
@@ -382,7 +392,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
     {
         minObjectWidth = 0;
     }
-    if ((data[3] & (uint8_t)16) == (uint8_t)16)
+    if ((data[3] & static_cast<uint8_t>(16)) == static_cast<uint8_t>(16))
     {
         if (dataSize < pos + 4)
             return false;
@@ -392,7 +402,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
     {
         maxObjectWidth = 0;
     }
-    if ((data[3] & (uint8_t)8) == (uint8_t)8)
+    if ((data[3] & static_cast<uint8_t>(8)) == static_cast<uint8_t>(8))
     {
         if (dataSize < pos + 4)
             return false;
@@ -402,7 +412,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
     {
         minObjectHeight = 0;
     }
-    if ((data[3] & (uint8_t)4) == (uint8_t)4)
+    if ((data[3] & static_cast<uint8_t>(4)) == static_cast<uint8_t>(4))
     {
         if (dataSize < pos + 4)
             return false;
@@ -412,7 +422,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
     {
         maxObjectHeight = 0;
     }
-    if ((data[3] & (uint8_t)2) == (uint8_t)2)
+    if ((data[3] & static_cast<uint8_t>(2)) == static_cast<uint8_t>(2))
     {
         if (dataSize < pos + 4)
             return false;
@@ -422,7 +432,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
     {
         minXSpeed = 0.0f;
     }
-    if ((data[3] & (uint8_t)1) == (uint8_t)1)
+    if ((data[3] & static_cast<uint8_t>(1)) == static_cast<uint8_t>(1))
     {
         if (dataSize < pos + 4)
             return false;
@@ -434,8 +444,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
     }
 
 
-
-    if ((data[4] & (uint8_t)128) == (uint8_t)128)
+    if ((data[4] & static_cast<uint8_t>(128)) == static_cast<uint8_t>(128))
     {
         if (dataSize < pos + 4)
             return false;
@@ -445,7 +454,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
     {
         minYSpeed = 0.0f;
     }
-    if ((data[4] & (uint8_t)64) == (uint8_t)64)
+    if ((data[4] & static_cast<uint8_t>(64)) == static_cast<uint8_t>(64))
     {
         if (dataSize < pos + 4)
             return false;
@@ -455,7 +464,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
     {
         maxYSpeed = 0.0f;
     }
-    if ((data[4] & (uint8_t)32) == (uint8_t)32)
+    if ((data[4] & static_cast<uint8_t>(32)) == static_cast<uint8_t>(32))
     {
         if (dataSize < pos + 4)
             return false;
@@ -465,7 +474,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
     {
         xDetectionCriteria = 0;
     }
-    if ((data[4] & (uint8_t)16) == (uint8_t)16)
+    if ((data[4] & static_cast<uint8_t>(16)) == static_cast<uint8_t>(16))
     {
         if (dataSize < pos + 4)
             return false;
@@ -475,7 +484,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
     {
         yDetectionCriteria = 0;
     }
-    if ((data[4] & (uint8_t)8) == (uint8_t)8)
+    if ((data[4] & static_cast<uint8_t>(8)) == static_cast<uint8_t>(8))
     {
         if (dataSize < pos + 4)
             return false;
@@ -485,7 +494,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
     {
         resetCriteria = 0;
     }
-    if ((data[4] & (uint8_t)4) == (uint8_t)4)
+    if ((data[4] & static_cast<uint8_t>(4)) == static_cast<uint8_t>(4))
     {
         if (dataSize < pos + 4)
             return false;
@@ -495,7 +504,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
     {
         sensitivity = 0.0f;
     }
-    if ((data[4] & (uint8_t)2) == (uint8_t)2)
+    if ((data[4] & static_cast<uint8_t>(2)) == static_cast<uint8_t>(2))
     {
         if (dataSize < pos + 4)
             return false;
@@ -505,7 +514,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
     {
         scaleFactor = 0;
     }
-    if ((data[4] & (uint8_t)1) == (uint8_t)1)
+    if ((data[4] & static_cast<uint8_t>(1)) == static_cast<uint8_t>(1))
     {
         if (dataSize < pos + 4)
             return false;
@@ -517,7 +526,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
     }
 
 
-    if ((data[5] & (uint8_t)128) == (uint8_t)128)
+    if ((data[5] & static_cast<uint8_t>(128)) == static_cast<uint8_t>(128))
     {
         if (dataSize < pos + 4)
             return false;
@@ -527,7 +536,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
     {
         processingTimeMks = 0;
     }
-    if ((data[5] & (uint8_t)64) == (uint8_t)64)
+    if ((data[5] & static_cast<uint8_t>(64)) == static_cast<uint8_t>(64))
     {
         if (dataSize < pos + 4)
             return false;
@@ -537,7 +546,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
     {
         type = 0;
     }
-    if ((data[5] & (uint8_t)32) == (uint8_t)32)
+    if ((data[5] & static_cast<uint8_t>(32)) == static_cast<uint8_t>(32))
     {
         if (dataSize < pos + 1)
             return false;
@@ -547,7 +556,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
     {
         enable = false;
     }
-    if ((data[5] & (uint8_t)16) == (uint8_t)16)
+    if ((data[5] & static_cast<uint8_t>(16)) == static_cast<uint8_t>(16))
     {
         if (dataSize < pos + 4)
             return false;
@@ -557,7 +566,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
     {
         custom1 = 0.0f;
     }
-    if ((data[5] & (uint8_t)8) == (uint8_t)8)
+    if ((data[5] & static_cast<uint8_t>(8)) == static_cast<uint8_t>(8))
     {
         if (dataSize < pos + 4)
             return false;
@@ -567,7 +576,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
     {
         custom2 = 0.0f;
     }
-    if ((data[5] & (uint8_t)4) == (uint8_t)4)
+    if ((data[5] & static_cast<uint8_t>(4)) == static_cast<uint8_t>(4))
     {
         if (dataSize < pos + 4)
             return false;
@@ -577,7 +586,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
     {
         custom3 = 0.0f;
     }
-    if ((data[5] & (uint8_t)2) == (uint8_t)2)
+    if ((data[5] & static_cast<uint8_t>(2)) == static_cast<uint8_t>(2))
     {
         if (dataSize < pos + 4)
             return false;
@@ -587,7 +596,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
     {
         minDetectionProbability = 0.0f;
     }
-    if ((data[5] & (uint8_t)1) == (uint8_t)1)
+    if ((data[5] & static_cast<uint8_t>(1)) == static_cast<uint8_t>(1))
     {
         int numObjects = 0;
         memcpy(&numObjects, &data[pos], 4); pos += 4;
@@ -689,18 +698,21 @@ int cr::detector::ObjectDetector::decodeCommand(uint8_t* data,
 {
     // Check size.
     if (size < 7)
+    {
         return -1;
+    }
 
     // Check version.
     if (data[1] != OBJECT_DETECTOR_MAJOR_VERSION ||
         data[2] != OBJECT_DETECTOR_MINOR_VERSION)
+    {
         return -1;
+    }
 
     // Extract data.
     int id = 0;
     memcpy(&id, &data[3], 4);
     value = 0.0f;
-
 
     // Check command type.
     if (data[0] == 0x00)
@@ -721,5 +733,3 @@ int cr::detector::ObjectDetector::decodeCommand(uint8_t* data,
 
     return -1;
 }
-
-
