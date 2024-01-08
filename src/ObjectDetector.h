@@ -39,10 +39,10 @@ struct Object
 /**
  * @brief Struct representing the mask for object detector parameters.
  *
- * This struct defines a mask to control which parameters are enabled or disabled
- * for an object detector. Each field in the mask corresponds to a specific
- * parameter.When the flag is set to true, the parameter is considered
- * enabled; otherwise, it is disabled.
+ * This struct defines a mask to control which parameters are enabled or
+ * disabled for parameters serialization. Each field in the mask corresponds to
+ * a specific parameter. When the flag is set to true, the parameter is
+ * considered enabled for serialization. Otherwise, it is disabled.
  */
 struct ObjectDetectorParamsMask
 {
@@ -84,8 +84,11 @@ class ObjectDetectorParams
 public:
     /// Init string. Depends on implementation.
     std::string initString{ "" };
-    /// Logging mode. Values: 0 - Disable, 1 - Only file,
-    /// 2 - Only terminal (console), 3 - File and terminal (console).
+    /// Logging mode. Values:
+    /// 0 - Disable,
+    /// 1 - Only file,
+    /// 2 - Only terminal (console),
+    /// 3 - File and terminal (console).
     int logMode{ 0 };
     /// Frame buffer size. Depends on implementation.
     int frameBufferSize{ 1 };
@@ -136,7 +139,7 @@ public:
     int numThreads{ 1 };
     /// Processing time for last frame, mks.
     int processingTimeMks{ 0 };
-    /// Algorithm type. Depends on implementation.
+    /// Algorithm / backend type. Depends on implementation.
     int type{ 0 };
     /// Mode. Default: false - Off, on - On.
     bool enable{ true };
@@ -148,46 +151,33 @@ public:
     float custom3{ 0.0f };
     /// List of detected objects.
     std::vector<Object> objects;
-    /// Particular detector class names.
+    /// A list of object class names. Used in detectors that recognise different
+    /// object classes. The detected objects have a attribute type. If detector
+    /// doesn't support object class recognition or can't recognise object type
+    /// the field type must be set to 0, otherwise type must have the ordinal
+    /// number of the class name from the classNames list (if list was set in
+    /// params) starting from 1 (first element in list -> type == 1).
     std::vector<std::string> classNames{ "" };
 
-    JSON_READABLE(ObjectDetectorParams,
-                  initString,
-                  logMode,
-                  frameBufferSize,
-                  minObjectWidth,
-                  maxObjectWidth,
-                  minObjectHeight,
-                  maxObjectHeight,
-                  minXSpeed,
-                  maxXSpeed,
-                  minYSpeed,
-                  maxYSpeed,
-                  minDetectionProbability,
-                  xDetectionCriteria,
-                  yDetectionCriteria,
-                  resetCriteria,
-                  sensitivity,
-                  scaleFactor,
-                  numThreads,
-                  type,
-                  enable,
-                  custom1,
-                  custom2,
-                  custom3,
+    JSON_READABLE(ObjectDetectorParams, initString, logMode, frameBufferSize,
+                  minObjectWidth, maxObjectWidth, minObjectHeight,
+                  maxObjectHeight, minXSpeed, maxXSpeed, minYSpeed, maxYSpeed,
+                  minDetectionProbability, xDetectionCriteria,
+                  yDetectionCriteria, resetCriteria, sensitivity, scaleFactor,
+                  numThreads, type, enable, custom1, custom2, custom3,
                   classNames);
 
     /**
-     * @brief operator =
+     * @brief Copy operator.
      * @param src Source object.
      * @return ObjectDetectorParams object.
      */
     ObjectDetectorParams& operator= (const ObjectDetectorParams& src);
 
     /**
-     * @brief Encode params. Method doesn't encode initString.
-     * @param data Pointer to data buffer. Must have at least 99 bytes size.
-     * @param bufferSize Size of data buffer. Min value is 99.
+     * @brief Encode (serialize) params.
+     * @param data Pointer to data buffer.
+     * @param bufferSize Size of data buffer.
      * @param size Size of data.
      * @param mask Pointer to parameters mask.
      * @return TRUE if params encoded or FALSE if not.
@@ -196,8 +186,8 @@ public:
                 ObjectDetectorParamsMask* mask = nullptr);
 
     /**
-     * @brief Decode params. Method doesn't decode initString.
-     * @param data Pointer to data.
+     * @brief Decode (deserialize) params.
+     * @param data Pointer to data (serialized params).
      * @param dataSize Size of data.
      * @return TRUE is params decoded or FALSE if not.
      */
@@ -207,14 +197,15 @@ public:
 
 
 /**
- * @brief Enum class defines the various parameters that can be associated
- * with an object detector. It provides a structured way to represent different
- * configuration options and settings for object detection.
+ * @brief Enum object detector parameters.
  */
 enum class ObjectDetectorParam
 {
-    /// Logging mode. Values: 0 - Disable, 1 - Only file,
-    /// 2 - Only terminal (console), 3 - File and terminal (console).
+    /// Logging mode. Values:
+    /// 0 - Disable,
+    /// 1 - Only file,
+    /// 2 - Only terminal (console),
+    /// 3 - File and terminal (console).
     LOG_MODE = 1,
     /// Frame buffer size. Depends on implementation.
     FRAME_BUFFER_SIZE,
@@ -243,8 +234,8 @@ enum class ObjectDetectorParam
     /// detected object's vertical speed must be <= MAX_Y_SPEED.
     MAX_Y_SPEED,
     /// Probability threshold from 0 to 1. To be detected object detection
-    /// probability must be >= MIN_DETECTION_PROPABILITY.
-    MIN_DETECTION_PROPABILITY,
+    /// probability must be >= MIN_DETECTION_PROBABILITY.
+    MIN_DETECTION_PROBABILITY,
     /// Horizontal track detection criteria, frames. By default shows how many
     /// frames the objects must move in any(+/-) horizontal direction to be
     /// detected.
@@ -265,7 +256,7 @@ enum class ObjectDetectorParam
     NUM_THREADS,
     /// Processing time for last frame, mks.
     PROCESSING_TIME_MKS,
-    /// Algorithm type. Depends on implementation.
+    /// Algorithm / backend type. Depends on implementation.
     TYPE,
     /// Mode. Default: 0 - Off, 1 - On.
     MODE,
@@ -295,7 +286,7 @@ enum class ObjectDetectorCommand
 
 
 /**
- * @brief Defines an interface for different object detectors.
+ * @brief Object detector interface class.
  */
 class ObjectDetector
 {
@@ -308,14 +299,15 @@ public:
 
     /**
      * @brief Get string of current library version.
-     * @return String of current library version.
+     * @return String of current library version: "Major.Minor.Patch".
      */
     static std::string getVersion();
 
     /**
-     * @brief Init object detector. All params will be set.
-     * @param params Parameters structure.
-     * @return TRUE if the object detector init or FALSE if not.
+     * @brief Init object detector. The particular detector should initialize
+     * only supported parameters from ObjectDetectorParams class.
+     * @param params Parameters class.
+     * @return TRUE if the object detector is init or FALSE if not.
      */
     virtual bool initObjectDetector(ObjectDetectorParams& params) = 0;
 
@@ -323,25 +315,28 @@ public:
      * @brief Set object detector param.
      * @param id Param ID.
      * @param value Param value to set.
-     * @return TRUE if param was set of FALSE.
+     * @return TRUE if param was set of FALSE if not (invalid value or
+     * particular param not supported).
      */
     virtual bool setParam(ObjectDetectorParam id, float value) = 0;
 
     /**
      * @brief Get object detector param value.
      * @param id Param ID.
-     * @return Param value or -1.
+     * @return Param value or -1 (if particular param not supported).
      */
     virtual float getParam(ObjectDetectorParam id) = 0;
 
     /**
      * @brief Get object detector params structure.
-     * @param params Object detector params object.
+     * @param params Object detector params object. If particular object
+     * detector doesn't support some params this params must have default values.
      */
     virtual void getParams(ObjectDetectorParams& params) = 0;
 
     /**
-     * @brief Get list of objects.
+     * @brief Get list of detected objects. If object detector disabled the
+     * list of detected objects always must be empty.
      * @return List of objects. If no detected object the list will be empty.
      */
     virtual std::vector<Object> getObjects() = 0;
@@ -349,13 +344,15 @@ public:
     /**
      * @brief Execute command.
      * @param id Command ID.
-     * @return TRUE if the command accepted or FALSE if not.
+     * @return TRUE if the command accepted (executed) or FALSE if not.
      */
     virtual bool executeCommand(ObjectDetectorCommand id) = 0;
 
     /**
      * @brief Perform detection.
-     * @param frame Source video frame.
+     * @param frame Source video frame. Required pixel format depends on
+     * implementation. It is recommended to support all possible RAW pixel
+     * formats supported by Frame object. 
      * @return TRUE if video frame was processed or FALSE if not.
      */
     virtual bool detect(cr::video::Frame& frame) = 0;
@@ -363,7 +360,8 @@ public:
     /**
     * @brief Set detection mask. Detector omits image segments, where detection
     * mask pixel values equal 0.
-    * @param mask Detection binary mask.
+    * @param mask Detection binary mask. Frame object. The object detector must
+    * support pixel formats for mask: GRAY, NV12, NV21, YV12 and YU12.
     * @return TRUE if video detection mask was set or FALSE if not.
     */
     virtual bool setMask(cr::video::Frame mask) = 0;
@@ -371,7 +369,7 @@ public:
     /**
      * @brief Encode set param command.
      * @param data Pointer to data buffer. Must have size >= 11.
-     * @param size Size of encoded data.
+     * @param size Size of encoded data (size of command).
      * @param id Param id.
      * @param value Param value.
      */
@@ -379,31 +377,36 @@ public:
             uint8_t* data, int& size, ObjectDetectorParam id, float value);
 
     /**
-     * @brief Encode command.
+     * @brief Encode action command.
      * @param data Pointer to data buffer. Must have size >= 11.
-     * @param size Size of encoded data.
+     * @param size Size of encoded data (size of command).
      * @param id Command ID.
      */
     static void encodeCommand(
             uint8_t* data, int& size, ObjectDetectorCommand id);
 
     /**
-     * @brief Decode command.
+     * @brief Decode command. Method decodes commands which prepared with
+     * encodeSetParamCommand(...) and encodeCommand(...) methods.
      * @param data Pointer to command data.
      * @param size Size of data.
-     * @param paramId Output command ID.
-     * @param commandId Output command ID.
-     * @param value Param or command value.
-     * @return 0 - command decoded, 1 - set param command decoded, -1 - error.
+     * @param paramId Output (decoded) parameter ID.
+     * @param commandId Output (decoded) command ID.
+     * @param value Param value if decoded.
+     * @return Return code:
+     * 0  - action command decoded, commandId will be initialized.
+     * 1  - set param command decoded,
+     * -1 - error (no commands decoded).
      */
-    static int decodeCommand(uint8_t* data,
-                             int size,
+    static int decodeCommand(uint8_t* data, int size,
                              ObjectDetectorParam& paramId,
                              ObjectDetectorCommand& commandId,
                              float& value);
 
     /**
-     * @brief Decode command.
+     * @brief Decode and execute command. Method decodes commands which encoded
+     * which prepared with encodeSetParamCommand(...) and encodeCommand(...)
+     * methods and call setParam(...) or executeCommand(...) methods.
      * @param data Pointer to command data.
      * @param size Size of data.
      * @return TRUE if command decoded and executed or FALSE if not.

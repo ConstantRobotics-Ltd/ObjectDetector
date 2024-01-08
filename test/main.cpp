@@ -869,6 +869,9 @@ bool encodeDecodeWithMaskTest()
     in.custom2 = static_cast<float>(rand() % 255);
     in.custom3 = static_cast<float>(rand() % 255);
     in.minDetectionProbability = static_cast<float>(rand() % 255);
+    in.initString = "sfsfsfsfsf";
+    in.classNames = { "apple", "banana", "orange", "pineapple", "strawberry",
+                        "watermelon", "lemon", "peach", "pear", "plum" };
     in.objects.clear();
     for (int i = 0; i < 5; ++i)
     {
@@ -911,6 +914,8 @@ bool encodeDecodeWithMaskTest()
     mask.custom2 = true;
     mask.custom3 = false;
     mask.objects = true;
+    mask.initString = false;
+    mask.classNames = true;
 
     // Encode data.
     uint8_t data[1024];
@@ -1101,20 +1106,24 @@ bool encodeDecodeWithMaskTest()
             return false;
         }
     }
+    if (in.classNames.size() != out.classNames.size())
+    {
+        cout << "in.classNames.size()" << endl;
+        return false;
+    }
+    for (int i = 0; i < in.classNames.size(); ++i)
+    {
+        if (in.classNames[i] != out.classNames[i])
+        {
+            cout << in.classNames[i] << endl;
+            return false;
+        }
+    }
+    if ("" != out.initString)
+    {
+        cout << "in.initString" << endl;
+        return false;
+    }
 
     return true;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

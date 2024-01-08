@@ -75,7 +75,7 @@ bool cr::detector::CustomObjectDetector::setParam(ObjectDetectorParam id, float 
         m_params.maxYSpeed = value;
         return true;
     }
-    case cr::detector::ObjectDetectorParam::MIN_DETECTION_PROPABILITY:
+    case cr::detector::ObjectDetectorParam::MIN_DETECTION_PROBABILITY:
     {
         m_params.minDetectionProbability = value;
         return true;
@@ -196,7 +196,7 @@ float cr::detector::CustomObjectDetector::getParam(ObjectDetectorParam id)
     {
         return m_params.maxYSpeed;
     }
-    case cr::detector::ObjectDetectorParam::MIN_DETECTION_PROPABILITY:
+    case cr::detector::ObjectDetectorParam::MIN_DETECTION_PROBABILITY:
     {
         return m_params.minDetectionProbability;
     }
@@ -339,5 +339,3 @@ bool cr::detector::CustomObjectDetector::decodeAndExecuteCommand(uint8_t* data, 
 
     return false;
 }
-
-
