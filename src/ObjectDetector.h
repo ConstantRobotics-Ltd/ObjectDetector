@@ -68,6 +68,7 @@ typedef struct ObjectDetectorParamsMask
     bool custom3{true};
     bool objects{true};
 } ObjectDetectorParamsMask;
+    bool classNames{ true };
 
 
 
@@ -143,6 +144,8 @@ public:
     float custom3{0.0f};
     /// List of detected objects.
     std::vector<Object> objects;
+    /// Particular detector class names.
+    std::vector<std::string> classNames{ "" };
 
     JSON_READABLE(ObjectDetectorParams,
                   initString,
@@ -167,7 +170,8 @@ public:
                   enable,
                   custom1,
                   custom2,
-                  custom3);
+                  custom3,
+                  classNames);
 
     /**
      * @brief operator =
