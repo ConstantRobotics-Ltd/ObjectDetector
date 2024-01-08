@@ -1,5 +1,6 @@
 #include "ObjectDetector.h"
 #include "ObjectDetectorVersion.h"
+#include <string>
 
 
 
@@ -138,14 +139,14 @@ bool cr::detector::ObjectDetectorParams::encode(
 
         // Add size + 1 of init string to data to recognize it on decode with null terminator.
         memcpy(&data[pos], &initString[0], initString.size() + 1);
-        pos += initString.size() + 1;
+        pos += static_cast<int>(initString.size()) + 1;
 
         // Iterate through all of the class names and add them to the data.
         for (int i = 0; i < classNames.size(); ++i)
         {
             // Add size + 1 of init string to data to recognize it on decode with null terminator.
             memcpy(&data[pos], &classNames[i][0], classNames[i].size() + 1);
-            pos += classNames[i].size() + 1;
+            pos += static_cast<int>(classNames[i].size()) + 1;
         }
         size = pos;
 
@@ -319,7 +320,7 @@ bool cr::detector::ObjectDetectorParams::encode(
 	{
         // Add size + 1 of init string to data to recognize it on decode with null terminator.
 		memcpy(&data[pos], &initString[0], initString.size() + 1);
-        pos += initString.size() + 1;
+        pos += static_cast<int>(initString.size()) + 1;
 	}
     if (mask->classNames)
     {
@@ -328,7 +329,7 @@ bool cr::detector::ObjectDetectorParams::encode(
         {
             // Add size + 1 of init string to data to recognize it on decode with null terminator.
             memcpy(&data[pos], &classNames[i][0], classNames[i].size() + 1);
-            pos += classNames[i].size() + 1;
+            pos += static_cast<int>(classNames[i].size()) + 1;
         }
     }
 
@@ -628,7 +629,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
         // Use strcpy to copy string with null terminator.
         std::array<char, 512> initStringArray;
         std::strcpy(initStringArray.data(), reinterpret_cast<char*>(&data[pos]));
-        pos += std::strlen(initStringArray.data()) + 1;
+        pos += static_cast<int>(std::strlen(initStringArray.data())) + 1;
         initString = initStringArray.data();
 	}
 	else
@@ -642,7 +643,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
 		{
 			std::array<char, 512> classNameArray;
 			std::strcpy(classNameArray.data(), reinterpret_cast<char*>(&data[pos]));
-			pos += std::strlen(classNameArray.data()) + 1;
+			pos += static_cast<int>(std::strlen(classNameArray.data())) + 1;
 			classNames.push_back(classNameArray.data());
 		}
 	}
