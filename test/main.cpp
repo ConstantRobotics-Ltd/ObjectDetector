@@ -668,6 +668,8 @@ bool jsonReadWriteTest()
     in.custom3 = rand() % 255;
     in.minDetectionProbability = rand() % 255;
     in.initString = "sfsfsfsfsf";
+    in.classNames = { "apple", "banana", "orange", "pineapple", "strawberry",
+                        "watermelon", "lemon", "peach", "pear", "plum" };
     in.objects.clear();
     for (int i = 0; i < 5; ++i)
     {
@@ -819,6 +821,19 @@ bool jsonReadWriteTest()
     {
         cout << "in.initString" << endl;
         return false;
+    }
+    if (in.classNames.size() != out.classNames.size())
+    {
+        cout << "in.classNames.size()" << endl;
+        return false;
+    }
+    for (int i = 0; i < in.classNames.size(); ++i)
+    {
+        if (in.classNames[i] != out.classNames[i])
+        {
+            cout << in.classNames[i] << endl;
+            return false;
+        }
     }
 
     return true;
