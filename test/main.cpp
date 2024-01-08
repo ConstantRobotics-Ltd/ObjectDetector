@@ -106,6 +106,8 @@ bool copyTest()
     in.minDetectionProbability = rand() % 255;
     in.initString = "serfrerferf";
     in.objects.clear();
+    in.classNames = {"apple", "banana", "orange", "pineapple", "strawberry", 
+                                "watermelon", "lemon", "peach", "pear", "plum"};
     for (int i = 0; i < 5; ++i)
     {
         Object obj;
@@ -299,6 +301,19 @@ bool copyTest()
         cout << "in.in.initString" << endl;
         return false;
     }
+    if (in.classNames.size() != out.classNames.size())
+	{
+		cout << "in.classNames.size()" << endl;
+		return false;
+	}
+	for (int i = 0; i < in.classNames.size(); ++i)
+    {
+        if (in.classNames[i] != out.classNames[i])
+		{
+            cout << in.classNames[i] << endl;
+			return false;
+        }
+	}
 
     return true;
 }
@@ -335,6 +350,8 @@ bool encodeDecodeTest()
     in.minDetectionProbability = rand() % 255;
     in.initString = "alsjfhkjlkjsa";
     in.objects.clear();
+    in.classNames = { "apple", "banana", "orange", "pineapple", "strawberry",
+                            "watermelon", "lemon", "peach", "pear", "plum" };
     for (int i = 0; i < 5; ++i)
     {
         Object obj;
@@ -356,6 +373,8 @@ bool encodeDecodeTest()
     int size = 0;
     in.encode(data, 1024, size);
 
+    std::array<uint8_t, 1024> data2;
+    std::copy(data, data + size, data2.begin());
     cout << "Encoded data size: " << size << " bytes" << endl;
 
     // Decode data.
@@ -540,10 +559,23 @@ bool encodeDecodeTest()
             return false;
         }
     }
-    if ("" != out.initString)
+    if (in.initString != out.initString)
     {
         cout << "in.initString" << endl;
         return false;
+    }
+    if (in.classNames.size() != out.classNames.size())
+    {
+        cout << "in.classNames.size()" << endl;
+        return false;
+    }
+    for (int i = 0; i < in.classNames.size(); ++i)
+    {
+        if (in.classNames[i] != out.classNames[i])
+        {
+            cout << in.classNames[i] << endl;
+            return false;
+        }
     }
 
     return true;
