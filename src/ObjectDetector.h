@@ -5,70 +5,74 @@
 
 
 
-namespace cr
-{
-namespace detector
+namespace cr::detector
 {
 /**
  * @brief Object data structure.
  */
-typedef struct Object
+struct Object
 {
-    /// Object ID. Must be uniques for particular object.
-    int id{0};
+    /// Object ID. Must be unique for particular object.
+    int id{ 0 };
     /// Frame ID. Must be the same as frame ID of processed video frame.
-    int frameId{0};
+    int frameId{ 0 };
     /// Object type. Depends on implementation.
-    int type{0};
+    int type{ 0 };
     /// Object rectangle width, pixels.
-    int width{0};
+    int width{ 0 };
     /// Object rectangle height, pixels.
-    int height{0};
+    int height{ 0 };
     /// Object rectangle top-left horizontal coordinate, pixels.
-    int x{0};
+    int x{ 0 };
     /// Object rectangle top-left vertical coordinate, pixels.
-    int y{0};
+    int y{ 0 };
     /// Horizontal component of object velocity, +-pixels/frame.
-    float vX{0.0f};
+    float vX{ 0.0f };
     /// Vertical component of object velocity, +-pixels/frame.
-    float vY{0.0f};
+    float vY{ 0.0f };
     /// Detection probability from 0 (minimum) to 1 (maximum).
-    float p{0.0f};
-} Object;
+    float p{ 0.0f };
+};
 
 
 
 /**
- * @brief Object detector params mask.
+ * @brief Struct representing the mask for object detector parameters.
+ *
+ * This struct defines a mask to control which parameters are enabled or disabled
+ * for an object detector. Each field in the mask corresponds to a specific
+ * parameter.When the flag is set to true, the parameter is considered
+ * enabled; otherwise, it is disabled.
  */
-typedef struct ObjectDetectorParamsMask
+struct ObjectDetectorParamsMask
 {
-    bool logMode{true};
-    bool frameBufferSize{true};
-    bool minObjectWidth{true};
-    bool maxObjectWidth{true};
-    bool minObjectHeight{true};
-    bool maxObjectHeight{true};
-    bool minXSpeed{true};
-    bool maxXSpeed{true};
-    bool minYSpeed{true};
-    bool maxYSpeed{true};
-    bool minDetectionProbability{true};
-    bool xDetectionCriteria{true};
-    bool yDetectionCriteria{true};
-    bool resetCriteria{true};
-    bool sensitivity{true};
-    bool scaleFactor{true};
-    bool numThreads{true};
-    bool processingTimeMks{true};
-    bool type{true};
-    bool enable{true};
-    bool custom1{true};
-    bool custom2{true};
-    bool custom3{true};
-    bool objects{true};
-} ObjectDetectorParamsMask;
+    bool initString{ true };
+    bool logMode{ true };
+    bool frameBufferSize{ true };
+    bool minObjectWidth{ true };
+    bool maxObjectWidth{ true };
+    bool minObjectHeight{ true };
+    bool maxObjectHeight{ true };
+    bool minXSpeed{ true };
+    bool maxXSpeed{ true };
+    bool minYSpeed{ true };
+    bool maxYSpeed{ true };
+    bool minDetectionProbability{ true };
+    bool xDetectionCriteria{ true };
+    bool yDetectionCriteria{ true };
+    bool resetCriteria{ true };
+    bool sensitivity{ true };
+    bool scaleFactor{ true };
+    bool numThreads{ true };
+    bool processingTimeMks{ true };
+    bool type{ true };
+    bool enable{ true };
+    bool custom1{ true };
+    bool custom2{ true };
+    bool custom3{ true };
+    bool objects{ true };
     bool classNames{ true };
+};
 
 
 
@@ -79,39 +83,39 @@ class ObjectDetectorParams
 {
 public:
     /// Init string. Depends on implementation.
-    std::string initString{""};
+    std::string initString{ "" };
     /// Logging mode. Values: 0 - Disable, 1 - Only file,
     /// 2 - Only terminal (console), 3 - File and terminal (console).
-    int logMode{0};
+    int logMode{ 0 };
     /// Frame buffer size. Depends on implementation.
-    int frameBufferSize{1};
+    int frameBufferSize{ 1 };
     /// Minimum object width to be detected, pixels. To be detected object's
     /// width must be >= minObjectWidth.
-    int minObjectWidth{4};
+    int minObjectWidth{ 4 };
     /// Maximum object width to be detected, pixels. To be detected object's
     /// width must be <= maxObjectWidth.
-    int maxObjectWidth{128};
+    int maxObjectWidth{ 128 };
     /// Minimum object height to be detected, pixels. To be detected object's
     /// height must be >= minObjectHeight.
-    int minObjectHeight{4};
+    int minObjectHeight{ 4 };
     /// Maximum object height to be detected, pixels. To be detected object's
     /// height must be <= maxObjectHeight.
-    int maxObjectHeight{128};
+    int maxObjectHeight{ 128 };
     /// Minimum object's horizontal speed to be detected, pixels/frame. To be
     /// detected object's horizontal speed must be >= minXSpeed.
-    float minXSpeed{0.0f};
+    float minXSpeed{ 0.0f };
     /// Maximum object's horizontal speed to be detected, pixels/frame. To be
     /// detected object's horizontal speed must be <= maxXSpeed.
-    float maxXSpeed{30.0f};
+    float maxXSpeed{ 30.0f };
     /// Minimum object's vertical speed to be detected, pixels/frame. To be
     /// detected object's vertical speed must be >= minYSpeed.
-    float minYSpeed{0.0f};
+    float minYSpeed{ 0.0f };
     /// Maximum object's vertical speed to be detected, pixels/frame. To be
     /// detected object's vertical speed must be <= maxYSpeed.
-    float maxYSpeed{30.0f};
+    float maxYSpeed{ 30.0f };
     /// Probability threshold from 0 to 1. To be detected object detection
     /// probability must be >= minDetectionProbability.
-    float minDetectionProbability{0.5f};
+    float minDetectionProbability{ 0.5f };
     /// Horizontal track detection criteria, frames. By default shows how many
     /// frames the objects must move in any(+/-) horizontal direction to be
     /// detected.
@@ -119,29 +123,29 @@ public:
     /// Vertical track detection criteria, frames. By default shows how many
     /// frames the objects must move in any(+/-) vertical direction to be
     /// detected.
-    int yDetectionCriteria{1};
+    int yDetectionCriteria{ 1 };
     /// Track reset criteria, frames. By default shows how many
     /// frames the objects should be not detected to be excluded from results.
-    int resetCriteria{1};
+    int resetCriteria{ 1 };
     /// Detection sensitivity. Depends on implementation. Default from 0 to 1.
-    float sensitivity{0.04f};
+    float sensitivity{ 0.04f };
     /// Frame scaling factor for processing purposes. Reduce the image size by
     /// scaleFactor times horizontally and vertically for faster processing.
-    int scaleFactor{1};
+    int scaleFactor{ 1 };
     /// Num threads. Number of threads for parallel computing.
-    int numThreads{1};
+    int numThreads{ 1 };
     /// Processing time for last frame, mks.
-    int processingTimeMks{0};
+    int processingTimeMks{ 0 };
     /// Algorithm type. Depends on implementation.
-    int type{0};
+    int type{ 0 };
     /// Mode. Default: false - Off, on - On.
-    bool enable{true};
+    bool enable{ true };
     /// Custom parameter. Depends on implementation.
-    float custom1{0.0f};
+    float custom1{ 0.0f };
     /// Custom parameter. Depends on implementation.
-    float custom2{0.0f};
+    float custom2{ 0.0f };
     /// Custom parameter. Depends on implementation.
-    float custom3{0.0f};
+    float custom3{ 0.0f };
     /// List of detected objects.
     std::vector<Object> objects;
     /// Particular detector class names.
@@ -203,7 +207,9 @@ public:
 
 
 /**
- * @brief Enum of object detector params.
+ * @brief Enum class defines the various parameters that can be associated
+ * with an object detector. It provides a structured way to represent different
+ * configuration options and settings for object detection.
  */
 enum class ObjectDetectorParam
 {
@@ -289,7 +295,7 @@ enum class ObjectDetectorCommand
 
 
 /**
- * @brief Object detector interface class.
+ * @brief Defines an interface for different object detectors.
  */
 class ObjectDetector
 {
@@ -405,8 +411,3 @@ public:
     virtual bool decodeAndExecuteCommand(uint8_t* data, int size) = 0;
 };
 }
-}
-
-
-
-
