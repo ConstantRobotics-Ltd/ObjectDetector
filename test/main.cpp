@@ -87,25 +87,27 @@ bool copyTest()
     in.maxObjectWidth = rand() % 255;
     in.minObjectHeight = rand() % 255;
     in.maxObjectHeight = rand() % 255;
-    in.minXSpeed = rand() % 255;
-    in.maxXSpeed = rand() % 255;
-    in.minYSpeed = rand() % 255;
-    in.maxYSpeed = rand() % 255;
+    in.minXSpeed = static_cast<float>(rand() % 255);
+    in.maxXSpeed = static_cast<float>(rand() % 255);
+    in.minYSpeed = static_cast<float>(rand() % 255);
+    in.maxYSpeed = static_cast<float>(rand() % 255);
     in.xDetectionCriteria = rand() % 255;
     in.yDetectionCriteria = rand() % 255;
     in.resetCriteria = rand() % 255;
-    in.sensitivity = rand() % 255;
+    in.sensitivity = static_cast<float>(rand() % 255);
     in.scaleFactor = rand() % 255;
     in.numThreads = rand() % 255;
-    in.processingTimeMks = rand() % 255;
+    in.processingTimeMcs = rand() % 255;
     in.type = rand() % 255;
     in.enable = false;
-    in.custom1 = rand() % 255;
-    in.custom2 = rand() % 255;
-    in.custom3 = rand() % 255;
-    in.minDetectionProbability = rand() % 255;
+    in.custom1 = static_cast<float>(rand() % 255);
+    in.custom2 = static_cast<float>(rand() % 255);
+    in.custom3 = static_cast<float>(rand() % 255);
+    in.minDetectionProbability = static_cast<float>(rand() % 255);
     in.initString = "serfrerferf";
     in.objects.clear();
+    in.classNames = {"apple", "banana", "orange", "pineapple", "strawberry", 
+                                "watermelon", "lemon", "peach", "pear", "plum"};
     for (int i = 0; i < 5; ++i)
     {
         Object obj;
@@ -116,9 +118,9 @@ bool copyTest()
         obj.height = rand() % 255;
         obj.x = rand() % 255;
         obj.y = rand() % 255;
-        obj.vX = rand() % 255;
-        obj.vY = rand() % 255;
-        obj.p = rand() % 255;
+        obj.vX = static_cast<float>(rand() % 255);
+        obj.vY = static_cast<float>(rand() % 255);
+        obj.p = static_cast<float>(rand() % 255);
         in.objects.push_back(obj);
     }
 
@@ -206,9 +208,9 @@ bool copyTest()
         cout << "in.numThreads" << endl;
         return false;
     }
-    if (in.processingTimeMks != out.processingTimeMks)
+    if (in.processingTimeMcs != out.processingTimeMcs)
     {
-        cout << "in.processingTimeMks" << endl;
+        cout << "in.processingTimeMcs" << endl;
         return false;
     }
     if (in.type != out.type)
@@ -299,6 +301,19 @@ bool copyTest()
         cout << "in.in.initString" << endl;
         return false;
     }
+    if (in.classNames.size() != out.classNames.size())
+	{
+		cout << "in.classNames.size()" << endl;
+		return false;
+	}
+	for (int i = 0; i < in.classNames.size(); ++i)
+    {
+        if (in.classNames[i] != out.classNames[i])
+		{
+            cout << in.classNames[i] << endl;
+			return false;
+        }
+	}
 
     return true;
 }
@@ -316,25 +331,27 @@ bool encodeDecodeTest()
     in.maxObjectWidth = rand() % 255;
     in.minObjectHeight = rand() % 255;
     in.maxObjectHeight = rand() % 255;
-    in.minXSpeed = rand() % 255;
-    in.maxXSpeed = rand() % 255;
-    in.minYSpeed = rand() % 255;
-    in.maxYSpeed = rand() % 255;
+    in.minXSpeed = static_cast<float>(rand() % 255);
+    in.maxXSpeed = static_cast<float>(rand() % 255);
+    in.minYSpeed = static_cast<float>(rand() % 255);
+    in.maxYSpeed = static_cast<float>(rand() % 255);
     in.xDetectionCriteria = rand() % 255;
     in.yDetectionCriteria = rand() % 255;
     in.resetCriteria = rand() % 255;
-    in.sensitivity = rand() % 255;
+    in.sensitivity = static_cast<float>(rand() % 255);
     in.scaleFactor = rand() % 255;
     in.numThreads = rand() % 255;
-    in.processingTimeMks = rand() % 255;
+    in.processingTimeMcs = rand() % 255;
     in.type = rand() % 255;
     in.enable = false;
-    in.custom1 = rand() % 255;
-    in.custom2 = rand() % 255;
-    in.custom3 = rand() % 255;
-    in.minDetectionProbability = rand() % 255;
+    in.custom1 = static_cast<float>(rand() % 255);
+    in.custom2 = static_cast<float>(rand() % 255);
+    in.custom3 = static_cast<float>(rand() % 255);
+    in.minDetectionProbability = static_cast<float>(rand() % 255);
     in.initString = "alsjfhkjlkjsa";
     in.objects.clear();
+    in.classNames = { "apple", "banana", "orange", "pineapple", "strawberry",
+                            "watermelon", "lemon", "peach", "pear", "plum" };
     for (int i = 0; i < 5; ++i)
     {
         Object obj;
@@ -345,9 +362,9 @@ bool encodeDecodeTest()
         obj.height = rand() % 255;
         obj.x = rand() % 255;
         obj.y = rand() % 255;
-        obj.vX = rand() % 255;
-        obj.vY = rand() % 255;
-        obj.p = rand() % 255;
+        obj.vX = static_cast<float>(rand() % 255);
+        obj.vY = static_cast<float>(rand() % 255);
+        obj.p = static_cast<float>(rand() % 255);
         in.objects.push_back(obj);
     }
 
@@ -356,6 +373,8 @@ bool encodeDecodeTest()
     int size = 0;
     in.encode(data, 1024, size);
 
+    std::array<uint8_t, 1024> data2;
+    std::copy(data, data + size, data2.begin());
     cout << "Encoded data size: " << size << " bytes" << endl;
 
     // Decode data.
@@ -447,9 +466,9 @@ bool encodeDecodeTest()
         cout << "in.numThreads" << endl;
         return false;
     }
-    if (in.processingTimeMks != out.processingTimeMks)
+    if (in.processingTimeMcs != out.processingTimeMcs)
     {
-        cout << "in.processingTimeMks" << endl;
+        cout << "in.processingTimeMcs" << endl;
         return false;
     }
     if (in.type != out.type)
@@ -540,10 +559,23 @@ bool encodeDecodeTest()
             return false;
         }
     }
-    if ("" != out.initString)
+    if (in.initString != out.initString)
     {
         cout << "in.initString" << endl;
         return false;
+    }
+    if (in.classNames.size() != out.classNames.size())
+    {
+        cout << "in.classNames.size()" << endl;
+        return false;
+    }
+    for (int i = 0; i < in.classNames.size(); ++i)
+    {
+        if (in.classNames[i] != out.classNames[i])
+        {
+            cout << in.classNames[i] << endl;
+            return false;
+        }
     }
 
     return true;
@@ -618,24 +650,26 @@ bool jsonReadWriteTest()
     in.maxObjectWidth = rand() % 255;
     in.minObjectHeight = rand() % 255;
     in.maxObjectHeight = rand() % 255;
-    in.minXSpeed = rand() % 255;
-    in.maxXSpeed = rand() % 255;
-    in.minYSpeed = rand() % 255;
-    in.maxYSpeed = rand() % 255;
+    in.minXSpeed = static_cast<float>(rand() % 255);
+    in.maxXSpeed = static_cast<float>(rand() % 255);
+    in.minYSpeed = static_cast<float>(rand() % 255);
+    in.maxYSpeed = static_cast<float>(rand() % 255);
     in.xDetectionCriteria = rand() % 255;
     in.yDetectionCriteria = rand() % 255;
     in.resetCriteria = rand() % 255;
-    in.sensitivity = rand() % 255;
+    in.sensitivity = static_cast<float>(rand() % 255);
     in.scaleFactor = rand() % 255;
     in.numThreads = rand() % 255;
-    in.processingTimeMks = rand() % 255;
+    in.processingTimeMcs = rand() % 255;
     in.type = rand() % 255;
     in.enable = false;
-    in.custom1 = rand() % 255;
-    in.custom2 = rand() % 255;
-    in.custom3 = rand() % 255;
-    in.minDetectionProbability = rand() % 255;
+    in.custom1 = static_cast<float>(rand() % 255);
+    in.custom2 = static_cast<float>(rand() % 255);
+    in.custom3 = static_cast<float>(rand() % 255);
+    in.minDetectionProbability = static_cast<float>(rand() % 255);
     in.initString = "sfsfsfsfsf";
+    in.classNames = { "apple", "banana", "orange", "pineapple", "strawberry",
+                        "watermelon", "lemon", "peach", "pear", "plum" };
     in.objects.clear();
     for (int i = 0; i < 5; ++i)
     {
@@ -646,9 +680,9 @@ bool jsonReadWriteTest()
         obj.height = rand() % 255;
         obj.x = rand() % 255;
         obj.y = rand() % 255;
-        obj.vX = rand() % 255;
-        obj.vY = rand() % 255;
-        obj.p = rand() % 255;
+        obj.vX = static_cast<float>(rand() % 255);
+        obj.vY = static_cast<float>(rand() % 255);
+        obj.p = static_cast<float>(rand() % 255);
         in.objects.push_back(obj);
     }
 
@@ -788,6 +822,19 @@ bool jsonReadWriteTest()
         cout << "in.initString" << endl;
         return false;
     }
+    if (in.classNames.size() != out.classNames.size())
+    {
+        cout << "in.classNames.size()" << endl;
+        return false;
+    }
+    for (int i = 0; i < in.classNames.size(); ++i)
+    {
+        if (in.classNames[i] != out.classNames[i])
+        {
+            cout << in.classNames[i] << endl;
+            return false;
+        }
+    }
 
     return true;
 }
@@ -805,23 +852,26 @@ bool encodeDecodeWithMaskTest()
     in.maxObjectWidth = rand() % 255;
     in.minObjectHeight = rand() % 255;
     in.maxObjectHeight = rand() % 255;
-    in.minXSpeed = rand() % 255;
-    in.maxXSpeed = rand() % 255;
-    in.minYSpeed = rand() % 255;
-    in.maxYSpeed = rand() % 255;
+    in.minXSpeed = static_cast<float>(rand() % 255);
+    in.maxXSpeed = static_cast<float>(rand() % 255);
+    in.minYSpeed = static_cast<float>(rand() % 255);
+    in.maxYSpeed = static_cast<float>(rand() % 255);
     in.xDetectionCriteria = rand() % 255;
     in.yDetectionCriteria = rand() % 255;
     in.resetCriteria = rand() % 255;
-    in.sensitivity = rand() % 255;
+    in.sensitivity = static_cast<float>(rand() % 255);
     in.scaleFactor = rand() % 255;
     in.numThreads = rand() % 255;
-    in.processingTimeMks = rand() % 255;
+    in.processingTimeMcs = rand() % 255;
     in.type = rand() % 255;
     in.enable = false;
-    in.custom1 = rand() % 255;
-    in.custom2 = rand() % 255;
-    in.custom3 = rand() % 255;
-    in.minDetectionProbability = rand() % 255;
+    in.custom1 = static_cast<float>(rand() % 255);
+    in.custom2 = static_cast<float>(rand() % 255);
+    in.custom3 = static_cast<float>(rand() % 255);
+    in.minDetectionProbability = static_cast<float>(rand() % 255);
+    in.initString = "sfsfsfsfsf";
+    in.classNames = { "apple", "banana", "orange", "pineapple", "strawberry",
+                        "watermelon", "lemon", "peach", "pear", "plum" };
     in.objects.clear();
     for (int i = 0; i < 5; ++i)
     {
@@ -833,9 +883,9 @@ bool encodeDecodeWithMaskTest()
         obj.height = rand() % 255;
         obj.x = rand() % 255;
         obj.y = rand() % 255;
-        obj.vX = rand() % 255;
-        obj.vY = rand() % 255;
-        obj.p = rand() % 255;
+        obj.vX = static_cast<float>(rand() % 255);
+        obj.vY = static_cast<float>(rand() % 255);
+        obj.p = static_cast<float>(rand() % 255);
         in.objects.push_back(obj);
     }
 
@@ -857,13 +907,15 @@ bool encodeDecodeWithMaskTest()
     mask.sensitivity = false;
     mask.scaleFactor = true;
     mask.numThreads = false;
-    mask.processingTimeMks = true;
+    mask.processingTimeMcs = true;
     mask.type = false;
     mask.enable = true;
     mask.custom1 = false;
     mask.custom2 = true;
     mask.custom3 = false;
     mask.objects = true;
+    mask.initString = false;
+    mask.classNames = true;
 
     // Encode data.
     uint8_t data[1024];
@@ -961,9 +1013,9 @@ bool encodeDecodeWithMaskTest()
         cout << "in.numThreads" << endl;
         return false;
     }
-    if (in.processingTimeMks != out.processingTimeMks)
+    if (in.processingTimeMcs != out.processingTimeMcs)
     {
-        cout << "in.processingTimeMks" << endl;
+        cout << "in.processingTimeMcs" << endl;
         return false;
     }
     if (0 != out.type)
@@ -1054,20 +1106,24 @@ bool encodeDecodeWithMaskTest()
             return false;
         }
     }
+    if (in.classNames.size() != out.classNames.size())
+    {
+        cout << "in.classNames.size()" << endl;
+        return false;
+    }
+    for (int i = 0; i < in.classNames.size(); ++i)
+    {
+        if (in.classNames[i] != out.classNames[i])
+        {
+            cout << in.classNames[i] << endl;
+            return false;
+        }
+    }
+    if ("" != out.initString)
+    {
+        cout << "in.initString" << endl;
+        return false;
+    }
 
     return true;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
