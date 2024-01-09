@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       # When workflow is stable fail-fast should be set to true to reduce feedback time.
-      fail-fast: true
+      fail-fast: false
       # Set up a matrix to run the following configuration:
       # <Linux, Release, latest GCC compiler toolchain on the default runner image, default generator>
       # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list.
