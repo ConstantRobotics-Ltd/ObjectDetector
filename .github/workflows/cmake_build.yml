@@ -11,11 +11,10 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
-      # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations. Consider changing this to true when your workflow is stable.
-      fail-fast: false
+      # When workflow is stable fail-fast should be set to true to reduce feedback time.
+      fail-fast: true
       # Set up a matrix to run the following configuration:
       # <Linux, Release, latest GCC compiler toolchain on the default runner image, default generator>
-
       # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list.
       matrix:
         os: [ubuntu-latest]
