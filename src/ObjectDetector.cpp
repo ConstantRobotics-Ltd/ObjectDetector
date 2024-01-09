@@ -43,7 +43,7 @@ cr::detector::ObjectDetectorParams &cr::detector::ObjectDetectorParams::operator
     sensitivity = src.sensitivity;
     scaleFactor = src.scaleFactor;
     numThreads = src.numThreads;
-    processingTimeMks = src.processingTimeMks;
+    processingTimeMcs = src.processingTimeMcs;
     type = src.type;
     enable = src.enable;
     custom1 = src.custom1;
@@ -103,7 +103,7 @@ bool cr::detector::ObjectDetectorParams::encode(
         memcpy(&data[pos], &scaleFactor, 4); pos += 4;
         memcpy(&data[pos], &numThreads, 4); pos += 4;
 
-        memcpy(&data[pos], &processingTimeMks, 4); pos += 4;
+        memcpy(&data[pos], &processingTimeMcs, 4); pos += 4;
         memcpy(&data[pos], &type, 4); pos += 4;
         data[pos] = enable ? 0x01 : 0x00; pos += 1;
         memcpy(&data[pos], &custom1, 4); pos += 4;
@@ -175,7 +175,7 @@ bool cr::detector::ObjectDetectorParams::encode(
     data[pos] = data[pos] | (mask->numThreads ? static_cast<uint8_t>(1) : static_cast<uint8_t>(0));
     pos += 1;
     data[pos] = 0;
-    data[pos] = data[pos] | (mask->processingTimeMks ? static_cast<uint8_t>(128) : static_cast<uint8_t>(0));
+    data[pos] = data[pos] | (mask->processingTimeMcs ? static_cast<uint8_t>(128) : static_cast<uint8_t>(0));
     data[pos] = data[pos] | (mask->type ? static_cast<uint8_t>(64) : static_cast<uint8_t>(0));
     data[pos] = data[pos] | (mask->enable ? static_cast<uint8_t>(32) : static_cast<uint8_t>(0));
     data[pos] = data[pos] | (mask->custom1 ? static_cast<uint8_t>(16) : static_cast<uint8_t>(0));
@@ -257,9 +257,9 @@ bool cr::detector::ObjectDetectorParams::encode(
     }
 
 
-    if (mask->processingTimeMks)
+    if (mask->processingTimeMcs)
     {
-        memcpy(&data[pos], &processingTimeMks, 4); pos += 4;
+        memcpy(&data[pos], &processingTimeMcs, 4); pos += 4;
     }
     if (mask->type)
     {
@@ -531,11 +531,11 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
     {
         if (dataSize < pos + 4)
             return false;
-        memcpy(&processingTimeMks, &data[pos], 4); pos += 4;
+        memcpy(&processingTimeMcs, &data[pos], 4); pos += 4;
     }
     else
     {
-        processingTimeMks = 0;
+        processingTimeMcs = 0;
     }
     if ((data[5] & static_cast<uint8_t>(64)) == static_cast<uint8_t>(64))
     {

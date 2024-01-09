@@ -64,7 +64,7 @@ struct ObjectDetectorParamsMask
     bool sensitivity{ true };
     bool scaleFactor{ true };
     bool numThreads{ true };
-    bool processingTimeMks{ true };
+    bool processingTimeMcs{ true };
     bool type{ true };
     bool enable{ true };
     bool custom1{ true };
@@ -137,8 +137,8 @@ public:
     int scaleFactor{ 1 };
     /// Num threads. Number of threads for parallel computing.
     int numThreads{ 1 };
-    /// Processing time for last frame, mks.
-    int processingTimeMks{ 0 };
+    /// Processing time of last frame in microseconds.
+    int processingTimeMcs{ 0 };
     /// Algorithm / backend type. Depends on implementation.
     int type{ 0 };
     /// Mode. Default: false - Off, on - On.
@@ -255,8 +255,8 @@ enum class ObjectDetectorParam
     SCALE_FACTOR,
     /// Num threads. Number of threads for parallel computing.
     NUM_THREADS,
-    /// Processing time for last frame, mks.
-    PROCESSING_TIME_MKS,
+    /// Processing time of last frame in microseconds.
+    PROCESSING_TIME_MCS,
     /// Algorithm / backend type. Depends on implementation.
     TYPE,
     /// Mode. Default: 0 - Off, 1 - On.

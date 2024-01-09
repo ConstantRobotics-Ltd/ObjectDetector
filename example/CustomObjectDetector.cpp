@@ -110,7 +110,7 @@ bool cr::detector::CustomObjectDetector::setParam(ObjectDetectorParam id, float 
         m_params.numThreads = (int)value;
         return true;
     }
-    case cr::detector::ObjectDetectorParam::PROCESSING_TIME_MKS:
+    case cr::detector::ObjectDetectorParam::PROCESSING_TIME_MCS:
     {
         // Read only params.
         return true;
@@ -224,9 +224,9 @@ float cr::detector::CustomObjectDetector::getParam(ObjectDetectorParam id)
     {
         return (float)m_params.numThreads;
     }
-    case cr::detector::ObjectDetectorParam::PROCESSING_TIME_MKS:
+    case cr::detector::ObjectDetectorParam::PROCESSING_TIME_MCS:
     {
-        return (float)m_params.processingTimeMks;
+        return (float)m_params.processingTimeMcs;
     }
     case cr::detector::ObjectDetectorParam::TYPE:
     {

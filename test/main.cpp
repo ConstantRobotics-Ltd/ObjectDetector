@@ -97,7 +97,7 @@ bool copyTest()
     in.sensitivity = static_cast<float>(rand() % 255);
     in.scaleFactor = rand() % 255;
     in.numThreads = rand() % 255;
-    in.processingTimeMks = rand() % 255;
+    in.processingTimeMcs = rand() % 255;
     in.type = rand() % 255;
     in.enable = false;
     in.custom1 = static_cast<float>(rand() % 255);
@@ -208,9 +208,9 @@ bool copyTest()
         cout << "in.numThreads" << endl;
         return false;
     }
-    if (in.processingTimeMks != out.processingTimeMks)
+    if (in.processingTimeMcs != out.processingTimeMcs)
     {
-        cout << "in.processingTimeMks" << endl;
+        cout << "in.processingTimeMcs" << endl;
         return false;
     }
     if (in.type != out.type)
@@ -341,7 +341,7 @@ bool encodeDecodeTest()
     in.sensitivity = static_cast<float>(rand() % 255);
     in.scaleFactor = rand() % 255;
     in.numThreads = rand() % 255;
-    in.processingTimeMks = rand() % 255;
+    in.processingTimeMcs = rand() % 255;
     in.type = rand() % 255;
     in.enable = false;
     in.custom1 = static_cast<float>(rand() % 255);
@@ -466,9 +466,9 @@ bool encodeDecodeTest()
         cout << "in.numThreads" << endl;
         return false;
     }
-    if (in.processingTimeMks != out.processingTimeMks)
+    if (in.processingTimeMcs != out.processingTimeMcs)
     {
-        cout << "in.processingTimeMks" << endl;
+        cout << "in.processingTimeMcs" << endl;
         return false;
     }
     if (in.type != out.type)
@@ -660,7 +660,7 @@ bool jsonReadWriteTest()
     in.sensitivity = static_cast<float>(rand() % 255);
     in.scaleFactor = rand() % 255;
     in.numThreads = rand() % 255;
-    in.processingTimeMks = rand() % 255;
+    in.processingTimeMcs = rand() % 255;
     in.type = rand() % 255;
     in.enable = false;
     in.custom1 = static_cast<float>(rand() % 255);
@@ -862,7 +862,7 @@ bool encodeDecodeWithMaskTest()
     in.sensitivity = static_cast<float>(rand() % 255);
     in.scaleFactor = rand() % 255;
     in.numThreads = rand() % 255;
-    in.processingTimeMks = rand() % 255;
+    in.processingTimeMcs = rand() % 255;
     in.type = rand() % 255;
     in.enable = false;
     in.custom1 = static_cast<float>(rand() % 255);
@@ -907,7 +907,7 @@ bool encodeDecodeWithMaskTest()
     mask.sensitivity = false;
     mask.scaleFactor = true;
     mask.numThreads = false;
-    mask.processingTimeMks = true;
+    mask.processingTimeMcs = true;
     mask.type = false;
     mask.enable = true;
     mask.custom1 = false;
@@ -1013,9 +1013,9 @@ bool encodeDecodeWithMaskTest()
         cout << "in.numThreads" << endl;
         return false;
     }
-    if (in.processingTimeMks != out.processingTimeMks)
+    if (in.processingTimeMcs != out.processingTimeMcs)
     {
-        cout << "in.processingTimeMks" << endl;
+        cout << "in.processingTimeMcs" << endl;
         return false;
     }
     if (0 != out.type)

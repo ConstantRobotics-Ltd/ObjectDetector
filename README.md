@@ -517,8 +517,8 @@ enum class ObjectDetectorParam
     SCALE_FACTOR,
     /// Num threads. Number of threads for parallel computing.
     NUM_THREADS,
-    /// Processing time for last frame, mks.
-    PROCESSING_TIME_MKS,
+    /// Processing time of last frame in microseconds.
+    PROCESSING_TIME_MCS,
     /// Algorithm type. Depends on implementation.
     TYPE,
     /// Mode. Default: 0 - Off, 1 - On.
@@ -553,7 +553,7 @@ enum class ObjectDetectorParam
 | SENSITIVITY               | read / write | Detection sensitivity. Depends on implementation. Default from 0 to 1. |
 | SCALE_FACTOR              | read / write | Frame scaling factor for processing purposes. Reduce the image size by scaleFactor times horizontally and vertically for faster processing. |
 | NUM_THREADS               | read / write | Num threads. Number of threads for parallel computing.       |
-| PROCESSING_TIME_MKS       | read only    | Processing time for last frame, microseconds.                |
+| PROCESSING_TIME_MCS       | read only    | Processing time of last frame in microseconds.               |
 | TYPE                      | read / write | Algorithm / backend type. Depends on implementation.         |
 | MODE                      | read / write | Mode. Default: 0 - Off, 1 - On.                              |
 | CUSTOM_1                  | read / write | Custom parameter. Depends on implementation.                 |
@@ -676,8 +676,8 @@ public:
     int scaleFactor{ 1 };
     /// Num threads. Number of threads for parallel computing.
     int numThreads{ 1 };
-    /// Processing time for last frame, mks.
-    int processingTimeMks{ 0 };
+    /// Processing time of last frame in microseconds.
+    int processingTimeMcs{ 0 };
     /// Algorithm / backend type. Depends on implementation.
     int type{ 0 };
     /// Mode. Default: false - Off, on - On.
@@ -741,7 +741,7 @@ public:
 | sensitivity             | float       | Detection sensitivity. Depends on implementation. Default from 0 to 1. |
 | scaleFactor             | int         | Frame scaling factor for processing purposes. Reduce the image size by scaleFactor times horizontally and vertically for faster processing. |
 | numThreads              | int         | Num threads. Number of threads for parallel computing.       |
-| processingTimeMks       | int         | Processing time for last frame, mks.                         |
+| processingTimeMcs       | int         | Processing time of last frame in microseconds.               |
 | type                    | int         | Algorithm type. Depends on implementation.                   |
 | enable                  | bool        | Mode: false - Off, true - On.                                |
 | custom1                 | float       | Custom parameter. Depends on implementation.                 |
@@ -794,7 +794,7 @@ struct ObjectDetectorParamsMask
     bool sensitivity{ true };
     bool scaleFactor{ true };
     bool numThreads{ true };
-    bool processingTimeMks{ true };
+    bool processingTimeMcs{ true };
     bool type{ true };
     bool enable{ true };
     bool custom1{ true };
