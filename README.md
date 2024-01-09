@@ -38,13 +38,13 @@
   - [Deserialize object detector params](#Deserialize-object-detector-params)
   - [Read params from JSON file and write to JSON file](#Read-params-from-JSON-file-and-write-to-JSON-file)
 - [Build and connect to your project](#Build-and-connect-to-your-project)
-- [How to make custom implementation](#How-to-make-custom-implementation)
+- [How to create a custom implementation](#How-to-create-a-custom-implementation)
 
 
 
 # Overview
 
-**ObjectDetector** C++ library provides standard interface as well defines data structures and rules for different object detectors (motion detectors, events detectors, neural networks etc.). **ObjectDetector** interface class doesn't do anything, just provides interface, defines data structures and provides methods to encode/decode commands and encode/decode (serialize/deserialize) params. Different object detector classes inherit interface form **ObjectDetector** C++ class. **ObjectDetector.h** file contains [ObjectDetectorCommand](#ObjectDetectorCommand-enum) enum (provides enum of action commands), [ObjectDetectorParam](#ObjectDetectorParam-enum) enum (provides enum of params), [ObjectDetectorParams](#ObjectDetectorParams-class-description) class (contains list of params) and includes [ObjectDetector](#ObjectDetector-class-declaration) class declaration. All object detectors should include params and commands listed in **ObjectDetector.h** file. ObjectDetector class depends on two external libraries (included as submodule): [Frame](https://github.com/ConstantRobotics-Ltd/Frame) (video frame data structure) and [ConfigReader](https://github.com/ConstantRobotics-Ltd/ConfigReader) (provides methods to read/write JSON config files).
+**ObjectDetector** C++ library provides standard interface, but also defines data structures and rules for different object detectors (motion detectors, events detectors, neural networks etc.). **ObjectDetector** interface class does not do anything, just provides interface, defines data structures and provides methods to encode/decode commands and encode/decode (serialize/deserialize) parameters. Different object detector classes inherit interface form **ObjectDetector** C++ class. **ObjectDetector.h** file contains [ObjectDetectorCommand](#ObjectDetectorCommand-enum) enum (provides enum of action commands), [ObjectDetectorParam](#ObjectDetectorParam-enum) enum (provides enum of params), [ObjectDetectorParams](#ObjectDetectorParams-class-description) class (contains list of params) and includes [ObjectDetector](#ObjectDetector-class-declaration) class declaration. All object detectors should include params and commands listed in **ObjectDetector.h** file. **ObjectDetector**class depends on two external libraries (included as submodules): [Frame](https://github.com/ConstantRobotics-Ltd/Frame) (video frame data structure) and [ConfigReader](https://github.com/ConstantRobotics-Ltd/ConfigReader) (provides methods to read/write JSON config files).
 
 
 
@@ -63,7 +63,7 @@
 | 1.5.0   | 26.09.2023   | - Signature of getParams(...) method changed.                |
 | 1.5.1   | 13.11.2023   | - Frame class updated.                                       |
 | 1.6.1   | 14.12.2023   | - Virtual destructor added.<br />- Frame class updated.      |
-| 1.7.0   | 08.01.2024   | - List of objects class names added to ObjectDetectorParams.<br />- Data structures updated. |
+| 1.7.0   | 08.01.2024   | - List of objects class names added to ObjectDetectorParams.<br />- Data structures updated.<br />- Added automatic linux build check based on GitHub Actions. |
 
 
 
@@ -690,12 +690,13 @@ public:
     float custom3{ 0.0f };
     /// List of detected objects.
     std::vector<Object> objects;
-    /// A list of object class names. Used in detectors that recognise different
-    /// object classes. The detected objects have a attribute type. If detector
-    /// doesn't support object class recognition or can't recognise object type
-    /// the field type must be set to 0, otherwise type must have the ordinal
-    /// number of the class name from the classNames list (if list was set in
-    /// params) starting from 1 (first element in list -> type == 1).
+    // A list of object class names used in detectors that recognize different
+    // object classes. Detected objects have an attribute called 'type.'
+    // If a detector doesn't support object class recognition or can't determine
+    // the object type, the 'type' field must be set to 0. Otherwise, the 'type'
+    // should correspond to the ordinal number of the class name from the 
+    // 'classNames' list (if the list was set in params), starting from 1
+    // (where the first element in the list has 'type == 1').
     std::vector<std::string> classNames{ "" };
 
     JSON_READABLE(ObjectDetectorParams, initString, logMode, frameBufferSize,
@@ -747,7 +748,7 @@ public:
 | custom2                 | float       | Custom parameter. Depends on implementation.                 |
 | custom3                 | float       | Custom parameter. Depends on implementation.                 |
 | objects                 | std::vector | List of detected objects.                                    |
-| classNames              | std::vector | A list of object class names. Used in detectors that recognize different object classes. The detected objects have a attribute type. If detector doesn't support object class recognition or can't recognise object type the field type must be set to 0, otherwise type must have the ordinal number of the class name from the classNames list (if list was set in params) starting from 1 (first element in list -> type == 1). |
+| classNames              | std::vector | A list of object class names used in detectors that recognize different object classes. Detected objects have an attribute called 'type.' If a detector doesn't support object class recognition or can't determine the object type, the 'type' field must be set to 0. Otherwise, the 'type'  should correspond to the ordinal number of the class name from the 'classNames' list (if the list was set in params), starting from 1 (where the first element in the list has 'type == 1'). |
 
 **None:** *ObjectDetectorParams class fields listed in Table 5 **must** reflect params set/get by methods setParam(...) and getParam(...).* 
 
@@ -1130,7 +1131,7 @@ Done!
 
 
 
-# How to make custom implementation
+# How to create a custom implementation
 
 The **ObjectDetector** class provides only an interface, data structures, and methods for encoding and decoding commands and params. To create your own implementation of the object detector, you must include the ObjectDetector repository in your project (see [**Build and connect to your project**](#Build-and-connect-to-your-project) section). The catalogue **example** (see [**Library files**](#Library-files) section) includes an example of the design of the custom object detector. You must implement all the methods of the ObjectDetector interface class. Custom object detector class declaration:
 
