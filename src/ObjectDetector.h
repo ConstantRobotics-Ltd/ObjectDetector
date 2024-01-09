@@ -151,12 +151,13 @@ public:
     float custom3{ 0.0f };
     /// List of detected objects.
     std::vector<Object> objects;
-    /// A list of object class names. Used in detectors that recognise different
-    /// object classes. The detected objects have a attribute type. If detector
-    /// doesn't support object class recognition or can't recognise object type
-    /// the field type must be set to 0, otherwise type must have the ordinal
-    /// number of the class name from the classNames list (if list was set in
-    /// params) starting from 1 (first element in list -> type == 1).
+    // A list of object class names used in detectors that recognize different
+    // object classes. Detected objects have an attribute called 'type.'
+    // If a detector doesn't support object class recognition or can't determine
+    // the object type, the 'type' field must be set to 0. Otherwise, the 'type'
+    // should correspond to the ordinal number of the class name from the 
+    // 'classNames' list (if the list was set in params), starting from 1
+    // (where the first element in the list has 'type == 1').
     std::vector<std::string> classNames{ "" };
 
     JSON_READABLE(ObjectDetectorParams, initString, logMode, frameBufferSize,
