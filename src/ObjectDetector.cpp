@@ -623,34 +623,43 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
         objects.clear();
     }
 
-    if ((data[6] & static_cast<uint8_t>(128)) == static_cast<uint8_t>(128))
-	{
-		initString.clear(); 
-        // Use strcpy to copy string with null terminator.
-        std::array<char, 512> initStringArray;
-        strcpy_s(initStringArray.data(), 512, reinterpret_cast<char*>(&data[pos]));
-        pos += static_cast<int>(std::strlen(initStringArray.data())) + 1;
-        initString = initStringArray.data();
-	}
-	else
-	{
-		initString.clear();
-	}
-    if ((data[6] & static_cast<uint8_t>(64)) == static_cast<uint8_t>(64))
-	{
-		classNames.clear();
-		while (pos < dataSize)
-		{
-			std::array<char, 512> classNameArray;
-			strcpy_s(classNameArray.data(), 512, reinterpret_cast<char*>(&data[pos]));
-			pos += static_cast<int>(std::strlen(classNameArray.data())) + 1;
-			classNames.push_back(classNameArray.data());
-		}
-	}
-	else
-	{
-		classNames.clear();
-	}
+    if (data[6] & static_cast<uint8_t>(128))
+    {
+        initString.clear();
+        // Extract characters for initString until null terminator is encountered.
+        while (pos < dataSize && data[pos] != '\0')
+        {
+            initString.push_back(static_cast<char>(data[pos]));
+            ++pos;
+        }
+        // Move past the null terminator
+        ++pos;
+    }
+    else
+    {
+        initString.clear();
+    }
+    if (data[6] & static_cast<uint8_t>(64))
+    {
+        classNames.clear();
+
+        while (pos < dataSize && data[pos] != '\0')
+        {
+            std::string className;
+            while (pos < dataSize && data[pos] != '\0')
+            {
+                className.push_back(static_cast<char>(data[pos]));
+                ++pos;
+            }
+
+            ++pos;
+            classNames.push_back(className);
+        }
+    }
+    else
+    {
+        classNames.clear();
+    }
 
     return true;
 }
