@@ -628,7 +628,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
 		initString.clear(); 
         // Use strcpy to copy string with null terminator.
         std::array<char, 512> initStringArray;
-        std::strcpy(initStringArray.data(), reinterpret_cast<char*>(&data[pos]));
+        strcpy_s(initStringArray.data(), 512, reinterpret_cast<char*>(&data[pos]));
         pos += static_cast<int>(std::strlen(initStringArray.data())) + 1;
         initString = initStringArray.data();
 	}
@@ -642,7 +642,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
 		while (pos < dataSize)
 		{
 			std::array<char, 512> classNameArray;
-			std::strcpy(classNameArray.data(), reinterpret_cast<char*>(&data[pos]));
+			strcpy_s(classNameArray.data(), 512, reinterpret_cast<char*>(&data[pos]));
 			pos += static_cast<int>(std::strlen(classNameArray.data())) + 1;
 			classNames.push_back(classNameArray.data());
 		}
