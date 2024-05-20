@@ -1,10 +1,10 @@
-![object_detector_web_logo](_static/object_detector_web_logo.png)
+![object_detector_web_logo](./static/object_detector_web_logo.png)
 
 
 
 # **ObjectDetector interface C++ library**
 
-**v1.7.1**
+**v1.7.2**
 
 
 
@@ -44,7 +44,7 @@
 
 # Overview
 
-**ObjectDetector** C++ library provides standard interface, but also defines data structures and rules for different object detectors (motion detectors, events detectors, neural networks etc.). **ObjectDetector** interface class does not do anything, just provides interface, defines data structures and provides methods to encode/decode commands and encode/decode (serialize/deserialize) parameters. Different object detector classes inherit interface form **ObjectDetector** C++ class. **ObjectDetector.h** file contains [ObjectDetectorCommand](#objectdetectorcommand-enum) enum (provides enum of action commands), [ObjectDetectorParam](#objectdetectorparam-enum) enum (provides enum of params), [ObjectDetectorParams](#objectdetectorparams-class-description) class (contains list of params) and includes [ObjectDetector](#objectdetector-class-declaration) class declaration. All object detectors should include params and commands listed in **ObjectDetector.h** file. **ObjectDetector**class depends on two external libraries (included as submodules): [Frame](https://github.com/ConstantRobotics-Ltd/Frame) (video frame data structure, source code included, Apache 2.0 license) and [ConfigReader](https://github.com/ConstantRobotics-Ltd/ConfigReader) (provides methods to read/write JSON config files, source code included, Apache 2.0 license). It uses C++17 standard. The library is licensed under the **Apache 2.0** license.
+**ObjectDetector** C++ library provides standard interface as well defines data structures and rules for different object detectors (motion detectors, events detectors, neural networks etc.). **ObjectDetector** interface class does not do anything, just provides interface, defines data structures and provides methods to encode/decode commands and encode/decode (serialize/deserialize) parameters. Different object detector classes inherit interface form **ObjectDetector** C++ class. **ObjectDetector.h** file contains [ObjectDetectorCommand](#objectdetectorcommand-enum) enum (provides enum of action commands), [ObjectDetectorParam](#objectdetectorparam-enum) enum (provides enum of params), [ObjectDetectorParams](#objectdetectorparams-class-description) class (contains list of params) and includes [ObjectDetector](#objectdetector-class-declaration) class declaration. All object detectors should include params and commands listed in **ObjectDetector.h** file. **ObjectDetector** class depends on two external libraries (included as submodules): [Frame](https://rapidpixel.constantrobotics.com/docs/service-libraries/frame.html) (video frame data structure, source code included, Apache 2.0 license) and [ConfigReader](https://rapidpixel.constantrobotics.com/docs/service-libraries/config-reader.html) (provides methods to read/write JSON config files, source code included, Apache 2.0 license). It uses C++17 standard. The library is licensed under the **Apache 2.0** license.
 
 
 
@@ -65,6 +65,7 @@
 | 1.6.1   | 14.12.2023   | - Virtual destructor added.<br />- Frame class updated.      |
 | 1.7.0   | 08.01.2024   | - List of objects class names added to ObjectDetectorParams.<br />- Data structures updated.<br />- Added automatic linux build check based on GitHub Actions. |
 | 1.7.1   | 25.03.2024   | - Frame class updated.<br />- ConfigReader class updated.<br />- Documentation updated. |
+| 1.7.2   | 20.05.2024   | - Frame class updated.<br />- ConfigReader class updated.<br />- Documentation updated. |
 
 
 
@@ -73,26 +74,26 @@
 The **ObjectDetector** library is a CMake project. Library files:
 
 ```xml
-CMakeLists.txt ----------------------- Main CMake file of the library.
-3rdparty ----------------------------- Folder with third-party libraries.
-    CMakeLists.txt ------------------- CMake file to include third-party libraries.
-    ConfigReader --------------------- Source code of the ConfigReader library.
-    Frame ---------------------------- Source code of the Frame library.
-example ------------------------------ Folder with custom (example) object detector class.
-    CMakeLists.txt ------------------- CMake file for custom object detector class.
-    CustomObjectDetector.cpp --------- C++ implementation file.
-    CustomObjectDetector.h ----------- Header with class declaration.
-    CustomObjectDetectorVersion.h ---- Header file which includes class version.
-    CustomObjectDetectorVersion.h.in - CMake service file to generate version file.
-test --------------------------------- Folder with test of data structures.
-    CMakeLists.txt ------------------- CMake file for test application.
-    main.cpp ------------------------- Source code file of test application.
-src ---------------------------------- Folder with source code of the library.
-    CMakeLists.txt ------------------- CMake file of the library.
-    ObjectDetector.cpp --------------- C++ implementation file.
-    ObjectDetector.h ----------------- Header file with class declaration.
-    ObjectDetectorVersion.h ---------- Header file with class version.
-    ObjectDetectorVersion.h.in ------- CMake service file to generate version file.
+CMakeLists.txt ------------------------ Main CMake file of the library.
+3rdparty ------------------------------ Folder with third-party libraries.
+    CMakeLists.txt -------------------- CMake file to include third-party libraries.
+    ConfigReader ---------------------- Folder width ConfigReader library source code.
+    Frame ----------------------------- Folder with Frame library source code.
+example ------------------------------- Folder with example object detector class.
+    CMakeLists.txt -------------------- CMake file for custom object detector class.
+    CustomObjectDetector.cpp ---------- C++ implementation file.
+    CustomObjectDetector.h ------------ Header with class declaration.
+    CustomObjectDetectorVersion.h ----- Header file which includes class version.
+    CustomObjectDetectorVersion.h.in -- CMake service file to generate version file.
+test ---------------------------------- Folder with test of data structures.
+    CMakeLists.txt -------------------- CMake file for test application.
+    main.cpp -------------------------- Source code file of test application.
+src ----------------------------------- Folder with source code of the library.
+    CMakeLists.txt -------------------- CMake file of the library.
+    ObjectDetector.cpp ---------------- C++ implementation file.
+    ObjectDetector.h ------------------ Header file with class declaration.
+    ObjectDetectorVersion.h ----------- Header file with class version.
+    ObjectDetectorVersion.h.in -------- CMake service file to generate version file.
 ```
 
 
@@ -178,7 +179,7 @@ cout << "ObjectDetector class version: " << ObjectDetector::getVersion() << endl
 Console output:
 
 ```bash
-ObjectDetector class version: 1.7.1
+ObjectDetector class version: 1.7.2
 ```
 
 
@@ -284,7 +285,7 @@ virtual bool detect(cr::video::Frame& frame) = 0;
 
 | Parameter | Description                                                  |
 | --------- | ------------------------------------------------------------ |
-| frame     | Video frame for processing. Object detector processes only RAW pixel formats (BGR24, RGB24, GRAY, YUYV24, YUYV, UYVY, NV12, NV21, YV12, YU12, see [Frame](https://github.com/ConstantRobotics-Ltd/Frame) class description). Required pixel format depends on implementation. It is recommended to support all possible RAW pixel formats supported by [Frame](https://github.com/ConstantRobotics-Ltd/Frame) object. |
+| frame     | Video frame for processing. Object detector processes only RAW pixel formats (BGR24, RGB24, GRAY, YUYV24, YUYV, UYVY, NV12, NV21, YV12, YU12, see [Frame](https://rapidpixel.constantrobotics.com/docs/service-libraries/frame.html) class description). Required pixel format depends on implementation. It is recommended to support all possible RAW pixel formats supported by [Frame](https://rapidpixel.constantrobotics.com/docs/service-libraries/frame.html) object. |
 
 **Returns:** TRUE if the video frame was processed or FALSE if not. If object detector disabled (see [ObjectDetectorParam](#objectdetectorparam-enum) enum description) the method should return TRUE.
 
@@ -300,7 +301,7 @@ virtual bool setMask(cr::video::Frame mask) = 0;
 
 | Parameter | Description                                                  |
 | --------- | ------------------------------------------------------------ |
-| mask      | Detection mask is see [Frame](https://github.com/ConstantRobotics-Ltd/Frame) object with GRAY pixel format. Detector omits image segments, where detection mask pixel values equal 0. |
+| mask      | Detection mask is see [Frame](https://rapidpixel.constantrobotics.com/docs/service-libraries/frame.html) object with GRAY pixel format. Detector omits image segments, where detection mask pixel values equal 0. |
 
 **Returns:** TRUE if the detection mask was set or FALSE if not.
 
@@ -588,7 +589,7 @@ struct Object
 
 ## ObjectDetectorParams class declaration
 
-**ObjectDetectorParams** class used for object detector initialization (**initObjectDetector(...)** method) or to get all actual params (**getParams()** method). Also **ObjectDetectorParams** provides structure to write/read params from JSON files (**JSON_READABLE** macro, see [**ConfigReader**](https://github.com/ConstantRobotics-Ltd/ConfigReader) class description) and provide methods to encode (serialize) and decode (deserialize) params. Class declaration:
+**ObjectDetectorParams** class used for object detector initialization (**initObjectDetector(...)** method) or to get all actual params (**getParams()** method). Also **ObjectDetectorParams** provides structure to write/read params from JSON files (**JSON_READABLE** macro, see [ConfigReader](https://rapidpixel.constantrobotics.com/docs/service-libraries/config-reader.html) class description) and provide methods to encode (serialize) and decode (deserialize) params. Class declaration:
 
 ```cpp
 class ObjectDetectorParams
