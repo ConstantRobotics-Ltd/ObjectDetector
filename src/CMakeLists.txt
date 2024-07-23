@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.13)
 ## LIBRARY-PROJECT
 ## name and version
 ###############################################################################
-project(ObjectDetector VERSION 1.7.2 LANGUAGES CXX)
+project(ObjectDetector VERSION 1.7.3 LANGUAGES CXX)
 
 
 
@@ -37,7 +37,6 @@ configure_file(${IN_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}Version.h)
 file (GLOB_RECURSE H_FILES   ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 file (GLOB_RECURSE CPP_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 file (GLOB_RECURSE HPP_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp)
-
 # concatenate the results (glob files) to variable
 set  (SOURCES ${CPP_FILES} ${H_FILES})
 # create lib from src
@@ -54,5 +53,3 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 ###############################################################################
 target_link_libraries(${PROJECT_NAME} Frame)
 target_link_libraries(${PROJECT_NAME} ConfigReader)
-
-
