@@ -4,7 +4,7 @@
 
 # **ObjectDetector interface C++ library**
 
-**v1.7.2**
+**v1.7.3**
 
 
 
@@ -44,7 +44,7 @@
 
 # Overview
 
-**ObjectDetector** C++ library provides standard interface as well defines data structures and rules for different object detectors (motion detectors, events detectors, neural networks etc.). **ObjectDetector** interface class does not do anything, just provides interface, defines data structures and provides methods to encode/decode commands and encode/decode (serialize/deserialize) parameters. Different object detector classes inherit interface form **ObjectDetector** C++ class. **ObjectDetector.h** file contains [ObjectDetectorCommand](#objectdetectorcommand-enum) enum (provides enum of action commands), [ObjectDetectorParam](#objectdetectorparam-enum) enum (provides enum of params), [ObjectDetectorParams](#objectdetectorparams-class-description) class (contains list of params) and includes [ObjectDetector](#objectdetector-class-declaration) class declaration. All object detectors should include params and commands listed in **ObjectDetector.h** file. **ObjectDetector** class depends on two external libraries (included as submodules): [Frame](https://rapidpixel.constantrobotics.com/docs/service-libraries/frame.html) (video frame data structure, source code included, Apache 2.0 license) and [ConfigReader](https://rapidpixel.constantrobotics.com/docs/service-libraries/config-reader.html) (provides methods to read/write JSON config files, source code included, Apache 2.0 license). It uses C++17 standard. The library is licensed under the **Apache 2.0** license.
+**ObjectDetector** C++ library provides standard interface as well as defines data structures and rules for different object detectors (motion detectors, events detectors, neural networks etc.). **ObjectDetector** interface class does not do anything, just provides interface, defines data structures and provides methods to encode/decode commands and encode/decode (serialize/deserialize) parameters. Different object detector classes inherit interface form **ObjectDetector** C++ class. **ObjectDetector.h** file contains [ObjectDetectorCommand](#objectdetectorcommand-enum) enum (provides enum of action commands), [ObjectDetectorParam](#objectdetectorparam-enum) enum (provides enum of params), [ObjectDetectorParams](#objectdetectorparams-class-description) class (contains list of params) and includes [ObjectDetector](#objectdetector-class-declaration) class declaration. All object detectors should include params and commands listed in **ObjectDetector.h** file. **ObjectDetector** class depends on two external libraries (included as submodules): [Frame](https://rapidpixel.constantrobotics.com/docs/service-libraries/frame.html) (video frame data structure, source code included, Apache 2.0 license) and [ConfigReader](https://rapidpixel.constantrobotics.com/docs/service-libraries/config-reader.html) (provides methods to read/write JSON config files, source code included, Apache 2.0 license). It uses C++17 standard. The library is licensed under the **Apache 2.0** license.
 
 
 
@@ -66,12 +66,13 @@
 | 1.7.0   | 08.01.2024   | - List of objects class names added to ObjectDetectorParams.<br />- Data structures updated.<br />- Added automatic linux build check based on GitHub Actions. |
 | 1.7.1   | 25.03.2024   | - Frame class updated.<br />- ConfigReader class updated.<br />- Documentation updated. |
 | 1.7.2   | 20.05.2024   | - Frame class updated.<br />- ConfigReader class updated.<br />- Documentation updated. |
+| 1.7.3   | 23.07.2024   | - CMake structure updated.                                   |
 
 
 
 # Library files
 
-The **ObjectDetector** library is a CMake project. Library files:
+The library is supplied as source code only. The user is provided with a set of files in the form of a CMake project (repository). The repository structure is shown below:
 
 ```xml
 CMakeLists.txt ------------------------ Main CMake file of the library.
@@ -173,13 +174,13 @@ static std::string getVersion();
 Method can be used without **ObjectDetector** class instance:
 
 ```cpp
-cout << "ObjectDetector class version: " << ObjectDetector::getVersion() << endl;
+cout << "ObjectDetector class version: " << ObjectDetector::getVersion();
 ```
 
 Console output:
 
 ```bash
-ObjectDetector class version: 1.7.2
+ObjectDetector class version: 1.7.3
 ```
 
 
@@ -235,7 +236,7 @@ virtual float getParam(ObjectDetectorParam id) = 0;
 
 ## getParams method
 
-The **getParams(...)** method returns object detector params class object as well a list of detected objects. Particular object detector class must provide thread-safe **getParams(...)** method call. This means that the **getParams(...)** method can be safely called from any thread. Method declaration:
+The **getParams(...)** method returns object detector params class object as well as the list of detected objects. Particular object detector class must provide thread-safe **getParams(...)** method call. This means that the **getParams(...)** method can be safely called from any thread. Method declaration:
 
 ```cpp
 virtual void getParams(ObjectDetectorParams& params) = 0;
@@ -249,7 +250,7 @@ virtual void getParams(ObjectDetectorParams& params) = 0;
 
 ## getObjects method
 
-The **getObjects()** method returns list of detected objects. User can object list of detected objects via **getParams(...)** method as well. Particular object detector class must provide thread-safe **getObjects(...)** method call. This means that the **getObjects(...)** method can be safely called from any thread. Method declaration:
+The **getObjects()** method returns list of detected objects. User can obtain list of detected objects via **getParams(...)** method as well. Particular object detector class must provide thread-safe **getObjects(...)** method call. This means that the **getObjects(...)** method can be safely called from any thread. Method declaration:
 
 ```cpp
 virtual std::vector<Object> getObjects() = 0;
@@ -322,7 +323,7 @@ static void encodeSetParamCommand(uint8_t* data, int& size, ObjectDetectorParam 
 | id        | Parameter ID according to [ObjectDetectorParam](#objectdetectorparam-enum) enum. |
 | value     | Parameter value. Value depends on parameter ID.              |
 
-**encodeSetParamCommand(...)** is static and used without **ObjectDetector** class instance. This method used on client side (control system). Command encoding example:
+**encodeSetParamCommand(...)** is a static method and can be used without **ObjectDetector** class instance. This method can be used on client side (control system). Command encoding example:
 
 ```cpp
 // Buffer for encoded data.
@@ -1076,7 +1077,7 @@ if (${PARENT}_SUBMODULE_OBJECT_DETECTOR)
 endif()
 ```
 
-File **3rdparty/CMakeLists.txt** adds folder **ObjectDetector** to your project and excludes test application and example (ObjectDetector class test applications and example) from compiling. Your repository new structure will be:
+File **3rdparty/CMakeLists.txt** adds folder **ObjectDetector** to your project and excludes test application and example (ObjectDetector class test applications and example) from compiling (by default test applications and example are excluded from compiling if **ObjectDetector** is included as sub-repository). The new structure of your repository:
 
 ```bash
 CMakeLists.txt
