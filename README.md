@@ -286,7 +286,7 @@ virtual bool detect(cr::video::Frame& frame) = 0;
 
 | Parameter | Description                                                  |
 | --------- | ------------------------------------------------------------ |
-| frame     | Video frame for processing. Object detector processes only RAW pixel formats (BGR24, RGB24, GRAY, YUYV24, YUYV, UYVY, NV12, NV21, YV12, YU12, see [Frame](https://rapidpixel.constantrobotics.com/docs/service-libraries/frame.html) class description). Required pixel format depends on implementation. It is recommended to support all possible RAW pixel formats supported by [Frame](https://rapidpixel.constantrobotics.com/docs/service-libraries/frame.html) object. |
+| frame     | Video frame for processing. Object detector processes only RAW pixel formats (BGR24, RGB24, GRAY, YUYV24, YUYV, UYVY, NV12, NV21, YV12, YU12, see [Frame](https://rapidpixel.constantrobotics.com/docs/Service/Frame.html) class description). Required pixel format depends on implementation. It is recommended to support all possible RAW pixel formats supported by [Frame](https://rapidpixel.constantrobotics.com/docs/Service/Frame.html) object. |
 
 **Returns:** TRUE if the video frame was processed or FALSE if not. If object detector disabled (see [ObjectDetectorParam](#objectdetectorparam-enum) enum description) the method should return TRUE.
 
@@ -302,7 +302,7 @@ virtual bool setMask(cr::video::Frame mask) = 0;
 
 | Parameter | Description                                                  |
 | --------- | ------------------------------------------------------------ |
-| mask      | Detection mask is see [Frame](https://rapidpixel.constantrobotics.com/docs/service-libraries/frame.html) object with GRAY pixel format. Detector omits image segments, where detection mask pixel values equal 0. |
+| mask      | Detection mask is see [Frame](https://rapidpixel.constantrobotics.com/docs/Service/Frame.html) object with GRAY pixel format. Detector omits image segments, where detection mask pixel values equal 0. |
 
 **Returns:** TRUE if the detection mask was set or FALSE if not.
 
@@ -590,7 +590,7 @@ struct Object
 
 ## ObjectDetectorParams class declaration
 
-**ObjectDetectorParams** class used for object detector initialization (**initObjectDetector(...)** method) or to get all actual params (**getParams()** method). Also **ObjectDetectorParams** provides structure to write/read params from JSON files (**JSON_READABLE** macro, see [ConfigReader](https://rapidpixel.constantrobotics.com/docs/service-libraries/config-reader.html) class description) and provide methods to encode (serialize) and decode (deserialize) params. Class declaration:
+**ObjectDetectorParams** class used for object detector initialization (**initObjectDetector(...)** method) or to get all actual params (**getParams()** method). Also **ObjectDetectorParams** provides structure to write/read params from JSON files (**JSON_READABLE** macro, see [ConfigReader](https://rapidpixel.constantrobotics.com/docs/Service/ConfigReader.html) class description) and provide methods to encode (serialize) and decode (deserialize) params. Class declaration:
 
 ```cpp
 class ObjectDetectorParams
