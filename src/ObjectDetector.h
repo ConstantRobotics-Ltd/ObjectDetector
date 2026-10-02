@@ -169,6 +169,17 @@ public:
                   classNames);
 
     /**
+     * @brief Default constructor.
+     */
+    ObjectDetectorParams() = default;
+
+    /**
+     * @brief Copy constructor.
+     * @param src Source object.
+     */
+    ObjectDetectorParams(const ObjectDetectorParams& src) = default;
+
+    /**
      * @brief Copy operator.
      * @param src Source object.
      * @return ObjectDetectorParams object.
