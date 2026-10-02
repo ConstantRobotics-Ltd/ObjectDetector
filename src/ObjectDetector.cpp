@@ -142,7 +142,7 @@ bool cr::detector::ObjectDetectorParams::encode(
         pos += static_cast<int>(initString.size()) + 1;
 
         // Iterate through all of the class names and add them to the data.
-        for (int i = 0; i < classNames.size(); ++i)
+        for (size_t i = 0; i < classNames.size(); ++i)
         {
             // Add size + 1 of init string to data to recognize it on decode with null terminator.
             memcpy(&data[pos], &classNames[i][0], classNames[i].size() + 1);
@@ -325,7 +325,7 @@ bool cr::detector::ObjectDetectorParams::encode(
     if (mask->classNames)
     {
         // Iterate through all of the class names and add them to the data.
-        for (int i = 0; i < classNames.size(); ++i)
+        for (size_t i = 0; i < classNames.size(); ++i)
         {
             // Add size + 1 of init string to data to recognize it on decode with null terminator.
             memcpy(&data[pos], &classNames[i][0], classNames[i].size() + 1);

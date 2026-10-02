@@ -1,3 +1,4 @@
+#include <array>
 #include <iostream>
 #include "ObjectDetector.h"
 
@@ -36,42 +37,59 @@ int main(void)
     cout << "#####################################" << endl;
     cout << endl;
 
+    bool allPassed = true;
+
     cout << "Copy test:" << endl;
     if (copyTest())
         cout << "OK" << endl;
     else
+    {
         cout << "ERROR" << endl;
+        allPassed = false;
+    }
     cout << endl;
 
     cout << "Encode/Decode test:" << endl;
     if (encodeDecodeTest())
         cout << "OK" << endl;
     else
+    {
         cout << "ERROR" << endl;
+        allPassed = false;
+    }
     cout << endl;
 
     cout << "Encode/Decode test with params mask:" << endl;
     if (encodeDecodeWithMaskTest())
         cout << "OK" << endl;
     else
+    {
         cout << "ERROR" << endl;
+        allPassed = false;
+    }
     cout << endl;
 
     cout << "Encode/Decode commands test:" << endl;
     if (encodeDecodeCommandsTest())
         cout << "OK" << endl;
     else
+    {
         cout << "ERROR" << endl;
+        allPassed = false;
+    }
     cout << endl;
 
     cout << "JSON read/write test:" << endl;
     if (jsonReadWriteTest())
         cout << "OK" << endl;
     else
+    {
         cout << "ERROR" << endl;
+        allPassed = false;
+    }
     cout << endl;
 
-    return 1;
+    return allPassed ? 0 : 1;
 }
 
 
@@ -243,7 +261,7 @@ bool copyTest()
         cout << "in.objects.size()" << endl;
         return false;
     }
-    for (int i = 0; i < in.objects.size(); ++i)
+    for (size_t i = 0; i < in.objects.size(); ++i)
     {
         if (in.objects[i].id != out.objects[i].id)
         {
@@ -306,7 +324,7 @@ bool copyTest()
 		cout << "in.classNames.size()" << endl;
 		return false;
 	}
-	for (int i = 0; i < in.classNames.size(); ++i)
+	for (size_t i = 0; i < in.classNames.size(); ++i)
     {
         if (in.classNames[i] != out.classNames[i])
 		{
@@ -506,7 +524,7 @@ bool encodeDecodeTest()
         cout << "in.objects.size()" << endl;
         return false;
     }
-    for (int i = 0; i < in.objects.size(); ++i)
+    for (size_t i = 0; i < in.objects.size(); ++i)
     {
         if (in.objects[i].id != out.objects[i].id)
         {
@@ -569,7 +587,7 @@ bool encodeDecodeTest()
         cout << "in.classNames.size()" << endl;
         return false;
     }
-    for (int i = 0; i < in.classNames.size(); ++i)
+    for (size_t i = 0; i < in.classNames.size(); ++i)
     {
         if (in.classNames[i] != out.classNames[i])
         {
@@ -827,7 +845,7 @@ bool jsonReadWriteTest()
         cout << "in.classNames.size()" << endl;
         return false;
     }
-    for (int i = 0; i < in.classNames.size(); ++i)
+    for (size_t i = 0; i < in.classNames.size(); ++i)
     {
         if (in.classNames[i] != out.classNames[i])
         {
@@ -1053,7 +1071,7 @@ bool encodeDecodeWithMaskTest()
         cout << "in.objects.size()" << endl;
         return false;
     }
-    for (int i = 0; i < in.objects.size(); ++i)
+    for (size_t i = 0; i < in.objects.size(); ++i)
     {
         if (in.objects[i].id != out.objects[i].id)
         {
@@ -1111,7 +1129,7 @@ bool encodeDecodeWithMaskTest()
         cout << "in.classNames.size()" << endl;
         return false;
     }
-    for (int i = 0; i < in.classNames.size(); ++i)
+    for (size_t i = 0; i < in.classNames.size(); ++i)
     {
         if (in.classNames[i] != out.classNames[i])
         {

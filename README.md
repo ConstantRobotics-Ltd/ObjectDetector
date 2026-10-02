@@ -4,7 +4,7 @@
 
 # **ObjectDetector interface C++ library**
 
-**v1.7.3**
+**v1.8.0**
 
 
 
@@ -67,6 +67,7 @@
 | 1.7.1   | 25.03.2024   | - Frame class updated.<br />- ConfigReader class updated.<br />- Documentation updated. |
 | 1.7.2   | 20.05.2024   | - Frame class updated.<br />- ConfigReader class updated.<br />- Documentation updated. |
 | 1.7.3   | 23.07.2024   | - CMake structure updated.                                   |
+| 1.8.0   | 02.10.2026   | - Submodules updated.<br />- Compiler warnings fixed.        |
 
 
 
@@ -180,7 +181,7 @@ cout << "ObjectDetector class version: " << ObjectDetector::getVersion();
 Console output:
 
 ```bash
-ObjectDetector class version: 1.7.3
+ObjectDetector class version: 1.8.0
 ```
 
 
@@ -681,6 +682,12 @@ public:
                   yDetectionCriteria, resetCriteria, sensitivity, scaleFactor,
                   numThreads, type, enable, custom1, custom2, custom3,
                   classNames);
+
+    /// Default constructor.
+    ObjectDetectorParams() = default;
+
+    /// Copy constructor.
+    ObjectDetectorParams(const ObjectDetectorParams& src) = default;
 
     /// Copy operator.
     ObjectDetectorParams& operator= (const ObjectDetectorParams& src);

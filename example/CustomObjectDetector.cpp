@@ -301,14 +301,14 @@ bool cr::detector::CustomObjectDetector::executeCommand(ObjectDetectorCommand id
 
 
 
-bool cr::detector::CustomObjectDetector::detect(cr::video::Frame& frame)
+bool cr::detector::CustomObjectDetector::detect([[maybe_unused]] cr::video::Frame& frame)
 {
     return true;
 }
 
 
 
-bool cr::detector::CustomObjectDetector::setMask(cr::video::Frame mask)
+bool cr::detector::CustomObjectDetector::setMask([[maybe_unused]] cr::video::Frame mask)
 {
     return true;
 }
