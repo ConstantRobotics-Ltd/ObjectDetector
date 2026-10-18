@@ -1,13 +1,534 @@
 #include "ObjectDetector.h"
 #include "ObjectDetectorVersion.h"
+#include <array>
+#include <cstdint>
+#include <cstring>
+#include <new>
 #include <string>
+#include <vector>
 
 
 
-cr::detector::ObjectDetector::~ObjectDetector()
+namespace
 {
-    
+// Encoded data stores int and float values as raw 4 bytes values.
+static_assert(sizeof(int) == 4, "int must be 4 bytes");
+static_assert(sizeof(float) == 4, "float must be 4 bytes");
+
+/// Size of an int or float value in the encoded data, bytes.
+constexpr int VALUE_SIZE{4};
+/// Size of a bool value in the encoded data, bytes.
+constexpr int FLAG_SIZE{1};
+/// Data type of the encoded params (the first byte of the encoded params).
+constexpr uint8_t PARAMS_DATA_TYPE{0x02};
+/// Data type of an encoded action command (the first byte of the command).
+constexpr uint8_t ACTION_COMMAND_DATA_TYPE{0x00};
+/// Data type of an encoded set param command (the first byte of the command).
+constexpr uint8_t SET_PARAM_COMMAND_DATA_TYPE{0x01};
+/// Position of the fields mask in the encoded params.
+constexpr int PARAMS_MASK_POS{3};
+/// Size of the fields mask in the encoded params, bytes.
+constexpr int PARAMS_MASK_SIZE{4};
+/// Size of the encoded params header: data type, version and mask.
+constexpr int PARAMS_HEADER_SIZE{PARAMS_MASK_POS + PARAMS_MASK_SIZE};
+/// Number of bits in a byte of the mask.
+constexpr int BITS_IN_BYTE{8};
+/// The bit of the first field of a mask byte.
+constexpr unsigned int FIRST_MASK_BIT{0x80U};
+/// Number of the int, float and bool fields of the params in the encoded data.
+constexpr int SCALAR_FIELDS_NUMBER{23};
+/// Number of the values (int and float) of an encoded object.
+constexpr int OBJECT_VALUES_NUMBER{10};
+/// Size of an encoded object, bytes.
+constexpr int OBJECT_SIZE{OBJECT_VALUES_NUMBER * VALUE_SIZE};
+/// Index of the field "objects" in the order of the encoded data (and of the
+/// bits of the mask). The init string and the class names follow it.
+constexpr int OBJECTS_FIELD{SCALAR_FIELDS_NUMBER};
+/// Index of the field "initString".
+constexpr int INIT_STRING_FIELD{OBJECTS_FIELD + 1};
+/// Index of the field "classNames".
+constexpr int CLASS_NAMES_FIELD{INIT_STRING_FIELD + 1};
+/// Number of the fields of the params which have a bit in the mask.
+constexpr int FIELDS_NUMBER{CLASS_NAMES_FIELD + 1};
+/// Position of the command ID in the encoded command.
+constexpr int COMMAND_ID_POS{3};
+/// Position of the param value in the encoded set param command.
+constexpr int COMMAND_VALUE_POS{7};
+/// Size of the encoded action command: data type, version and command ID.
+constexpr int ACTION_COMMAND_SIZE{COMMAND_ID_POS + VALUE_SIZE};
+/// Size of the encoded set param command: action command and param value.
+constexpr int SET_PARAM_COMMAND_SIZE{ACTION_COMMAND_SIZE + VALUE_SIZE};
+/// Value of all bytes of the mask if the mask is not given to encode(...).
+constexpr uint8_t FULL_MASK_BYTE{0xFF};
+static_assert(PARAMS_HEADER_SIZE == 7, "wrong size of the params header");
+static_assert(SET_PARAM_COMMAND_SIZE == 11, "wrong size of the command");
+static_assert(FIELDS_NUMBER <= PARAMS_MASK_SIZE * BITS_IN_BYTE,
+              "mask is too small");
+
+/// Flags of the params fields in the order of the encoded data.
+using Selection = std::array<bool, FIELDS_NUMBER>;
+
+
+
+/// Location of a scalar field of ObjectDetectorParams in the encoded data.
+struct FieldRef
+{
+    /// Pointer to the field of an ObjectDetectorParams object.
+    void* value{nullptr};
+    /// Size of the field in the encoded data: VALUE_SIZE or FLAG_SIZE.
+    int size{0};
+};
+
+/// Locations of all scalar fields of ObjectDetectorParams.
+using FieldTable = std::array<FieldRef, SCALAR_FIELDS_NUMBER>;
+
+
+
+/// Get the table of the scalar fields of ObjectDetectorParams in the order they
+/// are stored in the encoded data (the same order as the bits of the mask).
+/// Encode and decode use the same table: the formats cannot diverge.
+FieldTable makeFieldTable(cr::detector::ObjectDetectorParams& params)
+{
+    return {{
+        {&params.logMode, VALUE_SIZE},
+        {&params.frameBufferSize, VALUE_SIZE},
+        {&params.minObjectWidth, VALUE_SIZE},
+        {&params.maxObjectWidth, VALUE_SIZE},
+        {&params.minObjectHeight, VALUE_SIZE},
+        {&params.maxObjectHeight, VALUE_SIZE},
+        {&params.minXSpeed, VALUE_SIZE},
+        {&params.maxXSpeed, VALUE_SIZE},
+        {&params.minYSpeed, VALUE_SIZE},
+        {&params.maxYSpeed, VALUE_SIZE},
+        {&params.xDetectionCriteria, VALUE_SIZE},
+        {&params.yDetectionCriteria, VALUE_SIZE},
+        {&params.resetCriteria, VALUE_SIZE},
+        {&params.sensitivity, VALUE_SIZE},
+        {&params.scaleFactor, VALUE_SIZE},
+        {&params.numThreads, VALUE_SIZE},
+        {&params.processingTimeMcs, VALUE_SIZE},
+        {&params.type, VALUE_SIZE},
+        {&params.enable, FLAG_SIZE},
+        {&params.custom1, VALUE_SIZE},
+        {&params.custom2, VALUE_SIZE},
+        {&params.custom3, VALUE_SIZE},
+        {&params.minDetectionProbability, VALUE_SIZE}
+    }};
 }
+
+
+
+/// Get the values of an Object in the order they are stored in the encoded
+/// data. All of them are int or float values of VALUE_SIZE bytes.
+std::array<void*, OBJECT_VALUES_NUMBER> makeObjectTable(
+        cr::detector::Object& obj)
+{
+    return {{&obj.id, &obj.frameId, &obj.type, &obj.width, &obj.height,
+             &obj.x, &obj.y, &obj.vX, &obj.vY, &obj.p}};
+}
+
+
+
+/// Get the flags of the params fields which are selected by the mask in the
+/// order of the encoded data. All fields are selected if the mask is nullptr.
+Selection makeSelection(const cr::detector::ObjectDetectorParamsMask* mask)
+{
+    if (mask == nullptr)
+    {
+        Selection all{};
+        all.fill(true);
+        return all;
+    }
+
+    return {{
+        mask->logMode,
+        mask->frameBufferSize,
+        mask->minObjectWidth,
+        mask->maxObjectWidth,
+        mask->minObjectHeight,
+        mask->maxObjectHeight,
+        mask->minXSpeed,
+        mask->maxXSpeed,
+        mask->minYSpeed,
+        mask->maxYSpeed,
+        mask->xDetectionCriteria,
+        mask->yDetectionCriteria,
+        mask->resetCriteria,
+        mask->sensitivity,
+        mask->scaleFactor,
+        mask->numThreads,
+        mask->processingTimeMcs,
+        mask->type,
+        mask->enable,
+        mask->custom1,
+        mask->custom2,
+        mask->custom3,
+        mask->minDetectionProbability,
+        mask->objects,
+        mask->initString,
+        mask->classNames
+    }};
+}
+
+
+
+/// Get the position of the mask byte which holds the bit of the field.
+int maskBytePos(int field)
+{
+    return PARAMS_MASK_POS + field / BITS_IN_BYTE;
+}
+
+
+
+/// Get the bit of the field inside its mask byte: the first field of a byte
+/// has the most significant bit.
+uint8_t maskBit(int field)
+{
+    return static_cast<uint8_t>(FIRST_MASK_BIT >> (field % BITS_IN_BYTE));
+}
+
+
+
+/// Get the flags of the fields which are selected by the mask in the encoded
+/// data. The data must have the complete header.
+Selection readSelection(const uint8_t* data)
+{
+    Selection selected{};
+    for (int field = 0; field < FIELDS_NUMBER; ++field)
+    {
+        selected[static_cast<size_t>(field)] =
+                (data[maskBytePos(field)] & maskBit(field)) != 0;
+    }
+
+    return selected;
+}
+
+
+
+/// Write the mask of the selected fields. All mask bytes are set if the mask
+/// is not given.
+void writeMask(uint8_t* data, bool hasMask, const Selection& selected)
+{
+    std::memset(&data[PARAMS_MASK_POS], hasMask ? 0 : FULL_MASK_BYTE,
+                PARAMS_MASK_SIZE);
+    if (!hasMask)
+    {
+        return;
+    }
+    for (int field = 0; field < FIELDS_NUMBER; ++field)
+    {
+        if (selected[static_cast<size_t>(field)])
+        {
+            data[maskBytePos(field)] |= maskBit(field);
+        }
+    }
+}
+
+
+
+/// Check that the init string or a class name can be decoded: null character
+/// terminates a string in the encoded data.
+bool hasNullCharacter(const std::string& text)
+{
+    return text.find('\0') != std::string::npos;
+}
+
+
+
+/// Check that the list of class names can be decoded: the names have no null
+/// characters and the empty name is only the last one (an empty name
+/// terminates the list in the encoded data).
+bool isEncodableClassNames(const std::vector<std::string>& names)
+{
+    for (size_t i = 0; i < names.size(); ++i)
+    {
+        if (hasNullCharacter(names[i]))
+        {
+            return false;
+        }
+        if (names[i].empty() && i + 1 != names.size())
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+
+/// Check that the selected strings of the params can be decoded.
+bool isEncodableStrings(const cr::detector::ObjectDetectorParams& params,
+                        const Selection& selected)
+{
+    if (selected[INIT_STRING_FIELD] && hasNullCharacter(params.initString))
+    {
+        return false;
+    }
+
+    return !selected[CLASS_NAMES_FIELD] ||
+            isEncodableClassNames(params.classNames);
+}
+
+
+
+/// Calculate the size of the encoded selected scalar fields and of the
+/// object counter, bytes. The header is included.
+size_t fixedSizeOf(const FieldTable& fields, const Selection& selected)
+{
+    size_t size = PARAMS_HEADER_SIZE;
+    for (size_t i = 0; i < fields.size(); ++i)
+    {
+        if (selected[i])
+        {
+            size += static_cast<size_t>(fields[i].size);
+        }
+    }
+    if (selected[OBJECTS_FIELD])
+    {
+        size += VALUE_SIZE;
+    }
+
+    return size;
+}
+
+
+
+/// Calculate the size of the encoded selected strings with their terminators,
+/// bytes. The size is calculated as size_t: the strings can be longer than the
+/// buffer.
+size_t stringsSizeOf(const cr::detector::ObjectDetectorParams& params,
+                     const Selection& selected)
+{
+    size_t size = 0;
+    if (selected[INIT_STRING_FIELD])
+    {
+        size += params.initString.size() + 1;
+    }
+    if (selected[CLASS_NAMES_FIELD])
+    {
+        for (const std::string& name : params.classNames)
+        {
+            size += name.size() + 1;
+        }
+    }
+
+    return size;
+}
+
+
+
+/// Write the selected scalar fields at the position pos of the data and return
+/// the position after the last of them. The room must be checked before.
+size_t writeScalars(uint8_t* data, size_t pos, const FieldTable& fields,
+                    const Selection& selected)
+{
+    for (size_t i = 0; i < fields.size(); ++i)
+    {
+        if (!selected[i])
+        {
+            continue;
+        }
+        if (fields[i].size == FLAG_SIZE)
+        {
+            const bool flag = *static_cast<const bool*>(fields[i].value);
+            data[pos] = flag ? 0x01 : 0x00;
+        }
+        else
+        {
+            std::memcpy(&data[pos], fields[i].value, VALUE_SIZE);
+        }
+        pos += static_cast<size_t>(fields[i].size);
+    }
+
+    return pos;
+}
+
+
+
+/// Write the counter and the first number objects at the position pos of the
+/// data and return the position after the last of them. The room must be
+/// checked before.
+size_t writeObjects(uint8_t* data, size_t pos,
+                    std::vector<cr::detector::Object>& objects, size_t number)
+{
+    const int counter = static_cast<int>(number);
+    std::memcpy(&data[pos], &counter, VALUE_SIZE);
+    pos += VALUE_SIZE;
+    for (size_t i = 0; i < number; ++i)
+    {
+        for (const void* value : makeObjectTable(objects[i]))
+        {
+            std::memcpy(&data[pos], value, VALUE_SIZE);
+            pos += VALUE_SIZE;
+        }
+    }
+
+    return pos;
+}
+
+
+
+/// Write the selected strings at the position pos of the data and return the
+/// position after the last of them. The room must be checked before. The
+/// terminators are encoded to recognize the end of a string.
+size_t writeStrings(uint8_t* data, size_t pos,
+                    const cr::detector::ObjectDetectorParams& params,
+                    const Selection& selected)
+{
+    if (selected[INIT_STRING_FIELD])
+    {
+        std::memcpy(&data[pos], params.initString.c_str(),
+                    params.initString.size() + 1);
+        pos += params.initString.size() + 1;
+    }
+    if (selected[CLASS_NAMES_FIELD])
+    {
+        for (const std::string& name : params.classNames)
+        {
+            std::memcpy(&data[pos], name.c_str(), name.size() + 1);
+            pos += name.size() + 1;
+        }
+    }
+
+    return pos;
+}
+
+
+
+/// Read the selected scalar fields at the position pos of the data. The fields
+/// which are not selected are set to zero. Returns false if a field is not
+/// inside the data.
+bool readScalars(const uint8_t* data, int dataSize, int& pos,
+                 const FieldTable& fields, const Selection& selected)
+{
+    for (size_t i = 0; i < fields.size(); ++i)
+    {
+        if (!selected[i])
+        {
+            std::memset(fields[i].value, 0, static_cast<size_t>(fields[i].size));
+            continue;
+        }
+
+        // Check that the field is inside the data.
+        if (dataSize - pos < fields[i].size)
+        {
+            return false;
+        }
+        if (fields[i].size == FLAG_SIZE)
+        {
+            *static_cast<bool*>(fields[i].value) = data[pos] != 0x00;
+        }
+        else
+        {
+            std::memcpy(fields[i].value, &data[pos], VALUE_SIZE);
+        }
+        pos += fields[i].size;
+    }
+
+    return true;
+}
+
+
+
+/// Read the counter and the objects at the position pos of the data. The
+/// number of objects is checked against the rest of the data before the memory
+/// is reserved, so the memory is limited by the size of the data.
+bool readObjects(const uint8_t* data, int dataSize, int& pos,
+                 std::vector<cr::detector::Object>& objects)
+{
+    if (dataSize - pos < VALUE_SIZE)
+    {
+        return false;
+    }
+    int counter = 0;
+    std::memcpy(&counter, &data[pos], VALUE_SIZE);
+    pos += VALUE_SIZE;
+    if (counter < 0 || counter > (dataSize - pos) / OBJECT_SIZE)
+    {
+        return false;
+    }
+
+    objects.reserve(static_cast<size_t>(counter));
+    for (int i = 0; i < counter; ++i)
+    {
+        cr::detector::Object obj;
+        for (void* value : makeObjectTable(obj))
+        {
+            std::memcpy(value, &data[pos], VALUE_SIZE);
+            pos += VALUE_SIZE;
+        }
+        objects.push_back(obj);
+    }
+
+    return true;
+}
+
+
+
+/// Find the null terminated string which starts at the position pos of the
+/// data. Returns the length of the string (without the terminator) or -1 if
+/// the terminator is not inside the data.
+int findStringLength(const uint8_t* data, int dataSize, int pos)
+{
+    if (pos >= dataSize)
+    {
+        return -1;
+    }
+    const void* end = std::memchr(
+                &data[pos], 0, static_cast<size_t>(dataSize - pos));
+    if (end == nullptr)
+    {
+        return -1;
+    }
+
+    return static_cast<int>(static_cast<const uint8_t*>(end) - &data[pos]);
+}
+
+
+
+/// Read the selected strings at the position pos of the data. The init string
+/// must be terminated inside the data. The class names are null terminated
+/// strings up to the end of the data, the empty name terminates the list.
+bool readStrings(const uint8_t* data, int dataSize, int& pos,
+                 const Selection& selected,
+                 cr::detector::ObjectDetectorParams& params)
+{
+    if (selected[INIT_STRING_FIELD])
+    {
+        const int length = findStringLength(data, dataSize, pos);
+        if (length < 0)
+        {
+            return false;
+        }
+        params.initString.assign(reinterpret_cast<const char*>(&data[pos]),
+                                 static_cast<size_t>(length));
+        pos += length + 1;
+    }
+
+    while (selected[CLASS_NAMES_FIELD] && pos < dataSize)
+    {
+        const int length = findStringLength(data, dataSize, pos);
+        if (length < 0)
+        {
+            return false;
+        }
+        const char* name = reinterpret_cast<const char*>(&data[pos]);
+        pos += length + 1;
+        if (length == 0)
+        {
+            break;
+        }
+        params.classNames.emplace_back(name, static_cast<size_t>(length));
+    }
+
+    return true;
+}
+}
+
+
+
+cr::detector::ObjectDetector::~ObjectDetector() = default;
 
 
 
@@ -18,322 +539,54 @@ std::string cr::detector::ObjectDetector::getVersion()
 
 
 
-cr::detector::ObjectDetectorParams &cr::detector::ObjectDetectorParams::operator= (const cr::detector::ObjectDetectorParams &src)
-{
-    // Check yourself.
-    if (this == &src)
-    {
-        return *this;
-    }  
-
-    // Copy params.
-    logMode = src.logMode;
-    frameBufferSize = src.frameBufferSize;
-    minObjectWidth = src.minObjectWidth;
-    maxObjectWidth = src.maxObjectWidth;
-    minObjectHeight = src.minObjectHeight;
-    maxObjectHeight = src.maxObjectHeight;
-    minXSpeed = src.minXSpeed;
-    maxXSpeed = src.maxXSpeed;
-    minYSpeed = src.minYSpeed;
-    maxYSpeed = src.maxYSpeed;
-    xDetectionCriteria = src.xDetectionCriteria;
-    yDetectionCriteria = src.yDetectionCriteria;
-    resetCriteria = src.resetCriteria;
-    sensitivity = src.sensitivity;
-    scaleFactor = src.scaleFactor;
-    numThreads = src.numThreads;
-    processingTimeMcs = src.processingTimeMcs;
-    type = src.type;
-    enable = src.enable;
-    custom1 = src.custom1;
-    custom2 = src.custom2;
-    custom3 = src.custom3;
-    objects = src.objects;
-    minDetectionProbability = src.minDetectionProbability;
-    initString = src.initString;
-    classNames = src.classNames;
-
-    return *this;
-}
-
-
-
 bool cr::detector::ObjectDetectorParams::encode(
-    uint8_t* data, int bufferSize, int& size,
-    ObjectDetectorParamsMask* mask)
+        uint8_t* data, int bufferSize, int& size,
+        ObjectDetectorParamsMask* mask)
 {
-    // Check data buffer size.
-    if (bufferSize < 99)
+    size = 0;
+    if (data == nullptr || bufferSize < PARAMS_HEADER_SIZE)
     {
-        size = 0;
         return false;
     }
 
-    // Encode version.
-    int pos = 0;
-    data[pos] = 0x02; pos += 1;
-    data[pos] = OBJECT_DETECTOR_MAJOR_VERSION; pos += 1;
-    data[pos] = OBJECT_DETECTOR_MINOR_VERSION; pos += 1;
-
-    if (mask == nullptr)
+    // The strings are terminated by the null character in the encoded data:
+    // the decoder cannot restore a string with such a character inside.
+    const Selection selected = makeSelection(mask);
+    if (!isEncodableStrings(*this, selected))
     {
-        // Prepare mask.
-        data[pos] = 0xFF; pos += 1;
-        data[pos] = 0xFF; pos += 1;
-        data[pos] = 0xFF; pos += 1;
-        data[pos] = 0xFF; pos += 1;
-
-        // Encode data.
-        memcpy(&data[pos], &logMode, 4); pos += 4;
-        memcpy(&data[pos], &frameBufferSize, 4); pos += 4;
-        memcpy(&data[pos], &minObjectWidth, 4); pos += 4;
-        memcpy(&data[pos], &maxObjectWidth, 4); pos += 4;
-        memcpy(&data[pos], &minObjectHeight, 4); pos += 4;
-        memcpy(&data[pos], &maxObjectHeight, 4); pos += 4;
-        memcpy(&data[pos], &minXSpeed, 4); pos += 4;
-        memcpy(&data[pos], &maxXSpeed, 4); pos += 4;
-
-        memcpy(&data[pos], &minYSpeed, 4); pos += 4;
-        memcpy(&data[pos], &maxYSpeed, 4); pos += 4;
-        memcpy(&data[pos], &xDetectionCriteria, 4); pos += 4;
-        memcpy(&data[pos], &yDetectionCriteria, 4); pos += 4;
-        memcpy(&data[pos], &resetCriteria, 4); pos += 4;
-        memcpy(&data[pos], &sensitivity, 4); pos += 4;
-        memcpy(&data[pos], &scaleFactor, 4); pos += 4;
-        memcpy(&data[pos], &numThreads, 4); pos += 4;
-
-        memcpy(&data[pos], &processingTimeMcs, 4); pos += 4;
-        memcpy(&data[pos], &type, 4); pos += 4;
-        data[pos] = enable ? 0x01 : 0x00; pos += 1;
-        memcpy(&data[pos], &custom1, 4); pos += 4;
-        memcpy(&data[pos], &custom2, 4); pos += 4;
-        memcpy(&data[pos], &custom3, 4); pos += 4;
-        memcpy(&data[pos], &minDetectionProbability, 4); pos += 4;
-        int numObjects = (int)objects.size();
-        memcpy(&data[pos], &numObjects, 4); pos += 4;
-
-        // Check how much object we can put into buffer.
-        int restObjects = (bufferSize - pos) / 40;
-        if (restObjects < 0)
-            restObjects = 0;
-        if (restObjects < numObjects)
-        {
-            numObjects = restObjects;
-            memcpy(&data[pos - 4], &numObjects, 4); pos += 4;
-        }
-
-        for (int i = 0; i < numObjects; ++i)
-        {
-            memcpy(&data[pos], &objects[i].id, 4); pos += 4;
-            memcpy(&data[pos], &objects[i].frameId, 4); pos += 4;
-            memcpy(&data[pos], &objects[i].type, 4); pos += 4;
-            memcpy(&data[pos], &objects[i].width, 4); pos += 4;
-            memcpy(&data[pos], &objects[i].height, 4); pos += 4;
-            memcpy(&data[pos], &objects[i].x, 4); pos += 4;
-            memcpy(&data[pos], &objects[i].y, 4); pos += 4;
-            memcpy(&data[pos], &objects[i].vX, 4); pos += 4;
-            memcpy(&data[pos], &objects[i].vY, 4); pos += 4;
-            memcpy(&data[pos], &objects[i].p, 4); pos += 4;
-        }
-
-        // Add size + 1 of init string to data to recognize it on decode with null terminator.
-        memcpy(&data[pos], &initString[0], initString.size() + 1);
-        pos += static_cast<int>(initString.size()) + 1;
-
-        // Iterate through all of the class names and add them to the data.
-        for (size_t i = 0; i < classNames.size(); ++i)
-        {
-            // Add size + 1 of init string to data to recognize it on decode with null terminator.
-            memcpy(&data[pos], &classNames[i][0], classNames[i].size() + 1);
-            pos += static_cast<int>(classNames[i].size()) + 1;
-        }
-        size = pos;
-
-        return true;
+        return false;
     }
 
-    // Prepare mask.
-    data[pos] = 0;
-    data[pos] = data[pos] | (mask->logMode ? static_cast<uint8_t>(128) : static_cast<uint8_t>(0));
-    data[pos] = data[pos] | (mask->frameBufferSize ? static_cast<uint8_t>(64) : static_cast<uint8_t>(0));
-    data[pos] = data[pos] | (mask->minObjectWidth ? static_cast<uint8_t>(32) : static_cast<uint8_t>(0));
-    data[pos] = data[pos] | (mask->maxObjectWidth ? static_cast<uint8_t>(16) : static_cast<uint8_t>(0));
-    data[pos] = data[pos] | (mask->minObjectHeight ? static_cast<uint8_t>(8) : static_cast<uint8_t>(0));
-    data[pos] = data[pos] | (mask->maxObjectHeight ? static_cast<uint8_t>(4) : static_cast<uint8_t>(0));
-    data[pos] = data[pos] | (mask->minXSpeed ? static_cast<uint8_t>(2) : static_cast<uint8_t>(0));
-    data[pos] = data[pos] | (mask->maxXSpeed ? static_cast<uint8_t>(1) : static_cast<uint8_t>(0));
-    pos += 1;
-    data[pos] = 0;
-    data[pos] = data[pos] | (mask->minYSpeed ? static_cast<uint8_t>(128) : static_cast<uint8_t>(0));
-    data[pos] = data[pos] | (mask->maxYSpeed ? static_cast<uint8_t>(64) : static_cast<uint8_t>(0));
-    data[pos] = data[pos] | (mask->xDetectionCriteria ? static_cast<uint8_t>(32) : static_cast<uint8_t>(0));
-    data[pos] = data[pos] | (mask->yDetectionCriteria ? static_cast<uint8_t>(16) : static_cast<uint8_t>(0));
-    data[pos] = data[pos] | (mask->resetCriteria ? static_cast<uint8_t>(8) : static_cast<uint8_t>(0));
-    data[pos] = data[pos] | (mask->sensitivity ? static_cast<uint8_t>(4) : static_cast<uint8_t>(0));
-    data[pos] = data[pos] | (mask->scaleFactor ? static_cast<uint8_t>(2) : static_cast<uint8_t>(0));
-    data[pos] = data[pos] | (mask->numThreads ? static_cast<uint8_t>(1) : static_cast<uint8_t>(0));
-    pos += 1;
-    data[pos] = 0;
-    data[pos] = data[pos] | (mask->processingTimeMcs ? static_cast<uint8_t>(128) : static_cast<uint8_t>(0));
-    data[pos] = data[pos] | (mask->type ? static_cast<uint8_t>(64) : static_cast<uint8_t>(0));
-    data[pos] = data[pos] | (mask->enable ? static_cast<uint8_t>(32) : static_cast<uint8_t>(0));
-    data[pos] = data[pos] | (mask->custom1 ? static_cast<uint8_t>(16) : static_cast<uint8_t>(0));
-    data[pos] = data[pos] | (mask->custom2 ? static_cast<uint8_t>(8) : static_cast<uint8_t>(0));
-    data[pos] = data[pos] | (mask->custom3 ? static_cast<uint8_t>(4) : static_cast<uint8_t>(0));
-    data[pos] = data[pos] | (mask->minDetectionProbability ? static_cast<uint8_t>(2) : static_cast<uint8_t>(0));
-    data[pos] = data[pos] | (mask->objects ? static_cast<uint8_t>(1) : static_cast<uint8_t>(0));
-    pos += 1;
-    data[pos] = 0;
-    data[pos] = data[pos] | (mask->initString ? static_cast<uint8_t>(128) : static_cast<uint8_t>(0));
-    data[pos] = data[pos] | (mask->classNames ? static_cast<uint8_t>(64) : static_cast<uint8_t>(0));
-    pos += 1;
-
-    if (mask->logMode)
+    // All fields except the objects must fit into the buffer. The objects
+    // are put into the rest of the buffer, the number of encoded objects is
+    // reduced if there is no room for all of them.
+    const FieldTable fields = makeFieldTable(*this);
+    const size_t fixedSize = fixedSizeOf(fields, selected);
+    const size_t stringsSize = stringsSizeOf(*this, selected);
+    const size_t capacity = static_cast<size_t>(bufferSize);
+    if (fixedSize > capacity || stringsSize > capacity - fixedSize)
     {
-        memcpy(&data[pos], &logMode, 4); pos += 4;
+        return false;
     }
-    if (mask->frameBufferSize)
+    size_t objectsNumber = 0;
+    if (selected[OBJECTS_FIELD])
     {
-        memcpy(&data[pos], &frameBufferSize, 4); pos += 4;
-    }
-    if (mask->minObjectWidth)
-    {
-        memcpy(&data[pos], &minObjectWidth, 4); pos += 4;
-    }
-    if (mask->maxObjectWidth)
-    {
-        memcpy(&data[pos], &maxObjectWidth, 4); pos += 4;
-    }
-    if (mask->minObjectHeight)
-    {
-        memcpy(&data[pos], &minObjectHeight, 4); pos += 4;
-    }
-    if (mask->maxObjectHeight)
-    {
-        memcpy(&data[pos], &maxObjectHeight, 4); pos += 4;
-    }
-    if (mask->minXSpeed)
-    {
-        memcpy(&data[pos], &minXSpeed, 4); pos += 4;
-    }
-    if (mask->maxXSpeed)
-    {
-        memcpy(&data[pos], &maxXSpeed, 4); pos += 4;
+        const size_t room = (capacity - fixedSize - stringsSize) / OBJECT_SIZE;
+        objectsNumber = objects.size() < room ? objects.size() : room;
     }
 
-
-    if (mask->minYSpeed)
+    // Encode the data type, the version, the mask and the selected fields.
+    data[0] = PARAMS_DATA_TYPE;
+    data[1] = static_cast<uint8_t>(OBJECT_DETECTOR_MAJOR_VERSION);
+    data[2] = static_cast<uint8_t>(OBJECT_DETECTOR_MINOR_VERSION);
+    writeMask(data, mask != nullptr, selected);
+    size_t pos = writeScalars(data, PARAMS_HEADER_SIZE, fields, selected);
+    if (selected[OBJECTS_FIELD])
     {
-        memcpy(&data[pos], &minYSpeed, 4); pos += 4;
+        pos = writeObjects(data, pos, objects, objectsNumber);
     }
-    if (mask->maxYSpeed)
-    {
-        memcpy(&data[pos], &maxYSpeed, 4); pos += 4;
-    }
-    if (mask->xDetectionCriteria)
-    {
-        memcpy(&data[pos], &xDetectionCriteria, 4); pos += 4;
-    }
-    if (mask->yDetectionCriteria)
-    {
-        memcpy(&data[pos], &yDetectionCriteria, 4); pos += 4;
-    }
-    if (mask->resetCriteria)
-    {
-        memcpy(&data[pos], &resetCriteria, 4); pos += 4;
-    }
-    if (mask->sensitivity)
-    {
-        memcpy(&data[pos], &sensitivity, 4); pos += 4;
-    }
-    if (mask->scaleFactor)
-    {
-        memcpy(&data[pos], &scaleFactor, 4); pos += 4;
-    }
-    if (mask->numThreads)
-    {
-        memcpy(&data[pos], &numThreads, 4); pos += 4;
-    }
-
-
-    if (mask->processingTimeMcs)
-    {
-        memcpy(&data[pos], &processingTimeMcs, 4); pos += 4;
-    }
-    if (mask->type)
-    {
-        memcpy(&data[pos], &type, 4); pos += 4;
-    }
-    if (mask->enable)
-    {
-        data[pos] = enable == true ? 0x01 : 0x00; pos += 1;
-    }
-    if (mask->custom1)
-    {
-        memcpy(&data[pos], &custom1, 4); pos += 4;
-    }
-    if (mask->custom2)
-    {
-        memcpy(&data[pos], &custom2, 4); pos += 4;
-    }
-    if (mask->custom3)
-    {
-        memcpy(&data[pos], &custom3, 4); pos += 4;
-    }
-    if (mask->minDetectionProbability)
-    {
-        memcpy(&data[pos], &minDetectionProbability, 4); pos += 4;
-    }
-    if (mask->objects)
-    {
-        int numObjects = (int)objects.size();
-        memcpy(&data[pos], &numObjects, 4); pos += 4;
-
-        // Check how much object we can put into buffer.
-        int restObjects = (bufferSize - pos) / 40;
-        if (restObjects < 0)
-            restObjects = 0;
-        if (restObjects < numObjects)
-        {
-            numObjects = restObjects;
-            memcpy(&data[pos - 4], &numObjects, 4); pos += 4;
-        }
-
-        for (int i = 0; i < numObjects; ++i)
-        {
-            memcpy(&data[pos], &objects[i].id, 4); pos += 4;
-            memcpy(&data[pos], &objects[i].frameId, 4); pos += 4;
-            memcpy(&data[pos], &objects[i].type, 4); pos += 4;
-            memcpy(&data[pos], &objects[i].width, 4); pos += 4;
-            memcpy(&data[pos], &objects[i].height, 4); pos += 4;
-            memcpy(&data[pos], &objects[i].x, 4); pos += 4;
-            memcpy(&data[pos], &objects[i].y, 4); pos += 4;
-            memcpy(&data[pos], &objects[i].vX, 4); pos += 4;
-            memcpy(&data[pos], &objects[i].vY, 4); pos += 4;
-            memcpy(&data[pos], &objects[i].p, 4); pos += 4;
-        }
-    }
-
-
-    if (mask->initString)
-	{
-        // Add size + 1 of init string to data to recognize it on decode with null terminator.
-		memcpy(&data[pos], &initString[0], initString.size() + 1);
-        pos += static_cast<int>(initString.size()) + 1;
-	}
-    if (mask->classNames)
-    {
-        // Iterate through all of the class names and add them to the data.
-        for (size_t i = 0; i < classNames.size(); ++i)
-        {
-            // Add size + 1 of init string to data to recognize it on decode with null terminator.
-            memcpy(&data[pos], &classNames[i][0], classNames[i].size() + 1);
-            pos += static_cast<int>(classNames[i].size()) + 1;
-        }
-    }
-
-    size = pos;
+    pos = writeStrings(data, pos, *this, selected);
+    size = static_cast<int>(pos);
 
     return true;
 }
@@ -342,323 +595,70 @@ bool cr::detector::ObjectDetectorParams::encode(
 
 bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
 {
-    // Check data size.
-    if (dataSize < 7)
+    // Check data size (the header must be complete), data type and version.
+    if (data == nullptr || dataSize < PARAMS_HEADER_SIZE)
     {
         return false;
     }
-
-    // Check header.
-    if (data[0] != 0x02)
+    if (data[0] != PARAMS_DATA_TYPE)
     {
         return false;
     }
-
-    // Check version.
     if (data[1] != OBJECT_DETECTOR_MAJOR_VERSION ||
         data[2] != OBJECT_DETECTOR_MINOR_VERSION)
     {
         return false;
     }
 
-    // Decode data.
-    int pos = 7;
-    if ((data[3] & static_cast<uint8_t>(128)) == static_cast<uint8_t>(128))
+    // Decode into a temporary object: this object is changed only if the
+    // whole data is valid. Fields not selected by the mask are set to zero.
+    // The memory of the temporary object is limited by the size of the data:
+    // an object takes OBJECT_SIZE bytes of the data and a class name takes at
+    // least two bytes.
+    try
     {
-        if (dataSize < pos + 4)
-            return false;
-        memcpy(&logMode, &data[pos], 4); pos += 4;
-    }
-    else
-    {
-        logMode = 0;
-    }
-    if ((data[3] & static_cast<uint8_t>(64)) == static_cast<uint8_t>(64))
-    {
-        if (dataSize < pos + 4)
-            return false;
-        memcpy(&frameBufferSize, &data[pos], 4); pos += 4;
-    }
-    else
-    {
-        frameBufferSize = 0;
-    }
-    if ((data[3] & static_cast<uint8_t>(32)) == static_cast<uint8_t>(32))
-    {
-        if (dataSize < pos + 4)
-            return false;
-        memcpy(&minObjectWidth, &data[pos], 4); pos += 4;
-    }
-    else
-    {
-        minObjectWidth = 0;
-    }
-    if ((data[3] & static_cast<uint8_t>(16)) == static_cast<uint8_t>(16))
-    {
-        if (dataSize < pos + 4)
-            return false;
-        memcpy(&maxObjectWidth, &data[pos], 4); pos += 4;
-    }
-    else
-    {
-        maxObjectWidth = 0;
-    }
-    if ((data[3] & static_cast<uint8_t>(8)) == static_cast<uint8_t>(8))
-    {
-        if (dataSize < pos + 4)
-            return false;
-        memcpy(&minObjectHeight, &data[pos], 4); pos += 4;
-    }
-    else
-    {
-        minObjectHeight = 0;
-    }
-    if ((data[3] & static_cast<uint8_t>(4)) == static_cast<uint8_t>(4))
-    {
-        if (dataSize < pos + 4)
-            return false;
-        memcpy(&maxObjectHeight, &data[pos], 4); pos += 4;
-    }
-    else
-    {
-        maxObjectHeight = 0;
-    }
-    if ((data[3] & static_cast<uint8_t>(2)) == static_cast<uint8_t>(2))
-    {
-        if (dataSize < pos + 4)
-            return false;
-        memcpy(&minXSpeed, &data[pos], 4); pos += 4;
-    }
-    else
-    {
-        minXSpeed = 0.0f;
-    }
-    if ((data[3] & static_cast<uint8_t>(1)) == static_cast<uint8_t>(1))
-    {
-        if (dataSize < pos + 4)
-            return false;
-        memcpy(&maxXSpeed, &data[pos], 4); pos += 4;
-    }
-    else
-    {
-        maxXSpeed = 0.0f;
-    }
-
-
-    if ((data[4] & static_cast<uint8_t>(128)) == static_cast<uint8_t>(128))
-    {
-        if (dataSize < pos + 4)
-            return false;
-        memcpy(&minYSpeed, &data[pos], 4); pos += 4;
-    }
-    else
-    {
-        minYSpeed = 0.0f;
-    }
-    if ((data[4] & static_cast<uint8_t>(64)) == static_cast<uint8_t>(64))
-    {
-        if (dataSize < pos + 4)
-            return false;
-        memcpy(&maxYSpeed, &data[pos], 4); pos += 4;
-    }
-    else
-    {
-        maxYSpeed = 0.0f;
-    }
-    if ((data[4] & static_cast<uint8_t>(32)) == static_cast<uint8_t>(32))
-    {
-        if (dataSize < pos + 4)
-            return false;
-        memcpy(&xDetectionCriteria, &data[pos], 4); pos += 4;
-    }
-    else
-    {
-        xDetectionCriteria = 0;
-    }
-    if ((data[4] & static_cast<uint8_t>(16)) == static_cast<uint8_t>(16))
-    {
-        if (dataSize < pos + 4)
-            return false;
-        memcpy(&yDetectionCriteria, &data[pos], 4); pos += 4;
-    }
-    else
-    {
-        yDetectionCriteria = 0;
-    }
-    if ((data[4] & static_cast<uint8_t>(8)) == static_cast<uint8_t>(8))
-    {
-        if (dataSize < pos + 4)
-            return false;
-        memcpy(&resetCriteria, &data[pos], 4); pos += 4;
-    }
-    else
-    {
-        resetCriteria = 0;
-    }
-    if ((data[4] & static_cast<uint8_t>(4)) == static_cast<uint8_t>(4))
-    {
-        if (dataSize < pos + 4)
-            return false;
-        memcpy(&sensitivity, &data[pos], 4); pos += 4;
-    }
-    else
-    {
-        sensitivity = 0.0f;
-    }
-    if ((data[4] & static_cast<uint8_t>(2)) == static_cast<uint8_t>(2))
-    {
-        if (dataSize < pos + 4)
-            return false;
-        memcpy(&scaleFactor, &data[pos], 4); pos += 4;
-    }
-    else
-    {
-        scaleFactor = 0;
-    }
-    if ((data[4] & static_cast<uint8_t>(1)) == static_cast<uint8_t>(1))
-    {
-        if (dataSize < pos + 4)
-            return false;
-        memcpy(&numThreads, &data[pos], 4); pos += 4;
-    }
-    else
-    {
-        numThreads = 0;
-    }
-
-
-    if ((data[5] & static_cast<uint8_t>(128)) == static_cast<uint8_t>(128))
-    {
-        if (dataSize < pos + 4)
-            return false;
-        memcpy(&processingTimeMcs, &data[pos], 4); pos += 4;
-    }
-    else
-    {
-        processingTimeMcs = 0;
-    }
-    if ((data[5] & static_cast<uint8_t>(64)) == static_cast<uint8_t>(64))
-    {
-        if (dataSize < pos + 4)
-            return false;
-        memcpy(&type, &data[pos], 4); pos += 4;
-    }
-    else
-    {
-        type = 0;
-    }
-    if ((data[5] & static_cast<uint8_t>(32)) == static_cast<uint8_t>(32))
-    {
-        if (dataSize < pos + 1)
-            return false;
-        enable = data[pos] == 0x00 ? false : true; pos += 1;
-    }
-    else
-    {
-        enable = false;
-    }
-    if ((data[5] & static_cast<uint8_t>(16)) == static_cast<uint8_t>(16))
-    {
-        if (dataSize < pos + 4)
-            return false;
-        memcpy(&custom1, &data[pos], 4); pos += 4;
-    }
-    else
-    {
-        custom1 = 0.0f;
-    }
-    if ((data[5] & static_cast<uint8_t>(8)) == static_cast<uint8_t>(8))
-    {
-        if (dataSize < pos + 4)
-            return false;
-        memcpy(&custom2, &data[pos], 4); pos += 4;
-    }
-    else
-    {
-        custom2 = 0.0f;
-    }
-    if ((data[5] & static_cast<uint8_t>(4)) == static_cast<uint8_t>(4))
-    {
-        if (dataSize < pos + 4)
-            return false;
-        memcpy(&custom3, &data[pos], 4); pos += 4;
-    }
-    else
-    {
-        custom3 = 0.0f;
-    }
-    if ((data[5] & static_cast<uint8_t>(2)) == static_cast<uint8_t>(2))
-    {
-        if (dataSize < pos + 4)
-            return false;
-        memcpy(&minDetectionProbability, &data[pos], 4); pos += 4;
-    }
-    else
-    {
-        minDetectionProbability = 0.0f;
-    }
-    if ((data[5] & static_cast<uint8_t>(1)) == static_cast<uint8_t>(1))
-    {
-        int numObjects = 0;
-        memcpy(&numObjects, &data[pos], 4); pos += 4;
-        objects.clear();
-        for (int i = 0; i < numObjects; ++i)
+        ObjectDetectorParams result;
+        result.objects.clear();
+        result.initString.clear();
+        result.classNames.clear();
+        const FieldTable fields = makeFieldTable(result);
+        const Selection selected = readSelection(data);
+        int pos = PARAMS_HEADER_SIZE;
+        if (!readScalars(data, dataSize, pos, fields, selected))
         {
-            cr::detector::Object obj;
-            memcpy(&obj.id, &data[pos], 4); pos += 4;
-            memcpy(&obj.frameId, &data[pos], 4); pos += 4;
-            memcpy(&obj.type, &data[pos], 4); pos += 4;
-            memcpy(&obj.width, &data[pos], 4); pos += 4;
-            memcpy(&obj.height, &data[pos], 4); pos += 4;
-            memcpy(&obj.x, &data[pos], 4); pos += 4;
-            memcpy(&obj.y, &data[pos], 4); pos += 4;
-            memcpy(&obj.vX, &data[pos], 4); pos += 4;
-            memcpy(&obj.vY, &data[pos], 4); pos += 4;
-            memcpy(&obj.p, &data[pos], 4); pos += 4;
-            objects.push_back(obj);
+            return false;
         }
-    }
-    else
-    {
-        objects.clear();
-    }
-
-    if (data[6] & static_cast<uint8_t>(128))
-    {
-        initString.clear();
-        // Extract characters for initString until null terminator is encountered.
-        while (pos < dataSize && data[pos] != '\0')
+        if (selected[OBJECTS_FIELD] &&
+            !readObjects(data, dataSize, pos, result.objects))
         {
-            initString.push_back(static_cast<char>(data[pos]));
-            ++pos;
+            return false;
         }
-        // Move past the null terminator
-        ++pos;
-    }
-    else
-    {
-        initString.clear();
-    }
-    if (data[6] & static_cast<uint8_t>(64))
-    {
-        classNames.clear();
-
-        while (pos < dataSize && data[pos] != '\0')
+        if (!readStrings(data, dataSize, pos, selected, result))
         {
-            std::string className;
-            while (pos < dataSize && data[pos] != '\0')
-            {
-                className.push_back(static_cast<char>(data[pos]));
-                ++pos;
-            }
-
-            ++pos;
-            classNames.push_back(className);
+            return false;
         }
+
+        // The data must be used completely.
+        if (pos != dataSize)
+        {
+            return false;
+        }
+
+        // Commit. Swap of the containers and copy of the scalar fields do
+        // not throw: the object is not changed if the decoding failed.
+        const FieldTable target = makeFieldTable(*this);
+        for (size_t i = 0; i < target.size(); ++i)
+        {
+            std::memcpy(target[i].value, fields[i].value,
+                        static_cast<size_t>(target[i].size));
+        }
+        initString.swap(result.initString);
+        objects.swap(result.objects);
+        classNames.swap(result.classNames);
     }
-    else
+    catch (const std::bad_alloc&)
     {
-        classNames.clear();
+        return false;
     }
 
     return true;
@@ -669,75 +669,91 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
 void cr::detector::ObjectDetector::encodeSetParamCommand(
         uint8_t* data, int& size, ObjectDetectorParam id, float value)
 {
+    size = 0;
+    if (data == nullptr)
+    {
+        return;
+    }
+
     // Fill header.
-    data[0] = 0x01;
-    data[1] = OBJECT_DETECTOR_MAJOR_VERSION;
-    data[2] = OBJECT_DETECTOR_MINOR_VERSION;
+    data[0] = SET_PARAM_COMMAND_DATA_TYPE;
+    data[1] = static_cast<uint8_t>(OBJECT_DETECTOR_MAJOR_VERSION);
+    data[2] = static_cast<uint8_t>(OBJECT_DETECTOR_MINOR_VERSION);
 
     // Fill data.
-    int paramId = (int)id;
-    memcpy(&data[3], &paramId, 4);
-    memcpy(&data[7], &value, 4);
-    size = 11;
+    const int paramId = static_cast<int>(id);
+    std::memcpy(&data[COMMAND_ID_POS], &paramId, VALUE_SIZE);
+    std::memcpy(&data[COMMAND_VALUE_POS], &value, VALUE_SIZE);
+    size = SET_PARAM_COMMAND_SIZE;
 }
 
 
 
-void cr::detector::ObjectDetector::encodeCommand(uint8_t* data,
-                                   int& size,
-                                   cr::detector::ObjectDetectorCommand id)
+void cr::detector::ObjectDetector::encodeCommand(
+        uint8_t* data, int& size, ObjectDetectorCommand id)
 {
+    size = 0;
+    if (data == nullptr)
+    {
+        return;
+    }
+
     // Fill header.
-    data[0] = 0x00;
-    data[1] = OBJECT_DETECTOR_MAJOR_VERSION;
-    data[2] = OBJECT_DETECTOR_MINOR_VERSION;
+    data[0] = ACTION_COMMAND_DATA_TYPE;
+    data[1] = static_cast<uint8_t>(OBJECT_DETECTOR_MAJOR_VERSION);
+    data[2] = static_cast<uint8_t>(OBJECT_DETECTOR_MINOR_VERSION);
 
     // Fill data.
-    int commandId = (int)id;
-    memcpy(&data[3], &commandId, 4);
-    size = 7;
+    const int commandId = static_cast<int>(id);
+    std::memcpy(&data[COMMAND_ID_POS], &commandId, VALUE_SIZE);
+    size = ACTION_COMMAND_SIZE;
 }
 
 
 
-int cr::detector::ObjectDetector::decodeCommand(uint8_t* data,
-                                  int size,
-                                  cr::detector::ObjectDetectorParam& paramId,
-                                  cr::detector::ObjectDetectorCommand& commandId,
-                                  float& value)
+int cr::detector::ObjectDetector::decodeCommand(
+        uint8_t* data, int size, ObjectDetectorParam& paramId,
+        ObjectDetectorCommand& commandId, float& value)
 {
-    // Check size.
-    if (size < 7)
+    // Check pointer, minimum size and version.
+    if (data == nullptr || size < ACTION_COMMAND_SIZE)
     {
         return -1;
     }
-
-    // Check version.
     if (data[1] != OBJECT_DETECTOR_MAJOR_VERSION ||
         data[2] != OBJECT_DETECTOR_MINOR_VERSION)
     {
         return -1;
     }
 
-    // Extract data.
-    int id = 0;
-    memcpy(&id, &data[3], 4);
-    value = 0.0f;
+    // Extract the ID.
+    int rawId = 0;
+    std::memcpy(&rawId, &data[COMMAND_ID_POS], VALUE_SIZE);
 
-    // Check command type.
-    if (data[0] == 0x00)
+    // Check command type, exact size of the command and range of the ID: an
+    // unknown ID is not passed to the implementation.
+    if (data[0] == ACTION_COMMAND_DATA_TYPE)
     {
-        commandId = (ObjectDetectorCommand)id;
+        if (size != ACTION_COMMAND_SIZE ||
+            rawId < static_cast<int>(ObjectDetectorCommand::RESET) ||
+            rawId > static_cast<int>(ObjectDetectorCommand::OFF))
+        {
+            return -1;
+        }
+        commandId = static_cast<ObjectDetectorCommand>(rawId);
+        value = 0.0f;
         return 0;
     }
-    else if (data[0] == 0x01)
+    if (data[0] == SET_PARAM_COMMAND_DATA_TYPE)
     {
-        // Check size.
-        if (size != 11)
-            return false;
-
-        paramId = (ObjectDetectorParam)id;
-        memcpy(&value, &data[7], 4);
+        if (size != SET_PARAM_COMMAND_SIZE ||
+            rawId < static_cast<int>(ObjectDetectorParam::LOG_MODE) ||
+            rawId > static_cast<int>(ObjectDetectorParam::CUSTOM_3))
+        {
+            return -1;
+        }
+        paramId = static_cast<ObjectDetectorParam>(rawId);
+        std::memcpy(&value, &data[COMMAND_VALUE_POS], VALUE_SIZE);
         return 1;
     }
 

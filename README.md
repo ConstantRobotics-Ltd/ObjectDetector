@@ -4,7 +4,7 @@
 
 # **ObjectDetector interface C++ library**
 
-**v1.8.0**
+**v1.8.1**
 
 
 
@@ -38,13 +38,17 @@
   - [Deserialize object detector params](#deserialize-object-detector-params)
   - [Read params from JSON file and write to JSON file](#read-params-from-json-file-and-write-to-json-file)
 - [Build and connect to your project](#build-and-connect-to-your-project)
+  - [Build stand alone](#build-stand-alone)
+  - [CMake options](#cmake-options)
+  - [Connect to your project](#connect-to-your-project)
+- [Portability](#portability)
 - [How to create a custom implementation](#how-to-create-a-custom-implementation)
 
 
 
 # Overview
 
-**ObjectDetector** C++ library provides standard interface as well as defines data structures and rules for different object detectors (motion detectors, events detectors, neural networks etc.). **ObjectDetector** interface class does not do anything, just provides interface, defines data structures and provides methods to encode/decode commands and encode/decode (serialize/deserialize) parameters. Different object detector classes inherit interface form **ObjectDetector** C++ class. **ObjectDetector.h** file contains [ObjectDetectorCommand](#objectdetectorcommand-enum) enum (provides enum of action commands), [ObjectDetectorParam](#objectdetectorparam-enum) enum (provides enum of params), [ObjectDetectorParams](#objectdetectorparams-class-description) class (contains list of params) and includes [ObjectDetector](#objectdetector-class-declaration) class declaration. All object detectors should include params and commands listed in **ObjectDetector.h** file. **ObjectDetector** class depends on two external libraries (included as submodules): [Frame](https://rapidpixel.constantrobotics.com/docs/Service/Frame.html) (video frame data structure, source code included, Apache 2.0 license) and [ConfigReader](https://rapidpixel.constantrobotics.com/docs/Service/ConfigReader.html) (provides methods to read/write JSON config files, source code included, Apache 2.0 license). It uses C++17 standard. The library is licensed under the **Apache 2.0** license.
+**ObjectDetector** C++ library provides standard interface as well as defines data structures and rules for different object detectors (motion detectors, events detectors, neural networks etc.). **ObjectDetector** interface class does not do anything, just provides interface, defines data structures and provides methods to encode/decode commands and encode/decode (serialize/deserialize) parameters. Different object detector classes inherit interface form **ObjectDetector** C++ class. **ObjectDetector.h** file contains [ObjectDetectorCommand](#objectdetectorcommand-enum) enum (provides enum of action commands), [ObjectDetectorParam](#objectdetectorparam-enum) enum (provides enum of params), [ObjectDetectorParams](#objectdetectorparams-class-description) class (contains list of params) and includes [ObjectDetector](#objectdetector-class-declaration) class declaration. All object detectors should include params and commands listed in **ObjectDetector.h** file. **ObjectDetector** class depends on two external libraries: [Frame](https://rapidpixel.constantrobotics.com/docs/Service/Frame.html) (video frame data structure) and [ConfigReader](https://rapidpixel.constantrobotics.com/docs/Service/ConfigReader.html) (provides methods to read/write JSON config files). The repositories of these libraries must be placed next to the repository of **ObjectDetector** (see [Build and connect to your project](#build-and-connect-to-your-project) section). It uses C++17 standard.
 
 
 
@@ -68,6 +72,7 @@
 | 1.7.2   | 20.05.2024   | - Frame class updated.<br />- ConfigReader class updated.<br />- Documentation updated. |
 | 1.7.3   | 23.07.2024   | - CMake structure updated.                                   |
 | 1.8.0   | 02.10.2026   | - Submodules updated.<br />- Compiler warnings fixed.        |
+| 1.8.1   | 17.10.2026   | - Git submodules removed: the repositories of Frame and ConfigReader must be placed next to the repository of the library.<br />- ObjectDetectorParams::decode(...) checks the size of data, the number of objects and the strings, rejects data with bytes after the last field and does not change the object if the data is rejected.<br />- ObjectDetectorParams::encode(...) checks the buffer size for all fields including the strings, encodes the objects which fit into the buffer completely, rejects null characters in the strings and the empty class names inside the list.<br />- ObjectDetector::decodeCommand(...) checks the exact size of the command and the range of the ID and returns -1 for all errors.<br />- Null pointer arguments of encode and decode methods are rejected.<br />- Example of object detector implementation completed: all methods are implemented, values are validated, methods are thread-safe.<br />- Compiler warnings fixed, strict warnings and hardening options added to CMake files, test application extended.<br />- Documentation updated. |
 
 
 
@@ -77,10 +82,6 @@ The library is supplied as source code only. The user is provided with a set of 
 
 ```xml
 CMakeLists.txt ------------------------ Main CMake file of the library.
-3rdparty ------------------------------ Folder with third-party libraries.
-    CMakeLists.txt -------------------- CMake file to include third-party libraries.
-    ConfigReader ---------------------- Folder width ConfigReader library source code.
-    Frame ----------------------------- Folder with Frame library source code.
 example ------------------------------- Folder with example object detector class.
     CMakeLists.txt -------------------- CMake file for custom object detector class.
     CustomObjectDetector.cpp ---------- C++ implementation file.
@@ -159,6 +160,23 @@ public:
 
     /// Decode and execute command.
     virtual bool decodeAndExecuteCommand(uint8_t* data, int size) = 0;
+
+protected:
+
+    /// Default constructor. The class can be used as a base only.
+    ObjectDetector() = default;
+
+    /// Copy constructor.
+    ObjectDetector(const ObjectDetector& src) = default;
+
+    /// Move constructor.
+    ObjectDetector(ObjectDetector&& src) = default;
+
+    /// Copy operator.
+    ObjectDetector& operator= (const ObjectDetector& src) = default;
+
+    /// Move operator.
+    ObjectDetector& operator= (ObjectDetector&& src) = default;
 };
 ```
 
@@ -175,13 +193,14 @@ static std::string getVersion();
 Method can be used without **ObjectDetector** class instance:
 
 ```cpp
-cout << "ObjectDetector class version: " << ObjectDetector::getVersion();
+std::cout << "ObjectDetector class version: " <<
+             cr::detector::ObjectDetector::getVersion() << std::endl;
 ```
 
 Console output:
 
 ```bash
-ObjectDetector class version: 1.8.0
+ObjectDetector class version: 1.8.1
 ```
 
 
@@ -196,7 +215,7 @@ virtual bool initObjectDetector(ObjectDetectorParams& params) = 0;
 
 | Parameter | Value                                                        |
 | --------- | ------------------------------------------------------------ |
-| params    | Object detector parameters class. Particular object detector class may not support all params listed in [ObjectDetectorParams](#objectdetectorparams-class-description) class. If object detector doesn't support particular params this params should have default values. |
+| params    | Object detector parameters class. Particular object detector class may not support all params listed in [ObjectDetectorParams](#objectdetectorparams-class-description) class. If object detector doesn't support particular params this params should have default values. The values of the params are not checked by the interface: the implementation must validate them. |
 
 **Returns:** TRUE if the object detector initialized or FALSE if not.
 
@@ -204,7 +223,7 @@ virtual bool initObjectDetector(ObjectDetectorParams& params) = 0;
 
 ## setParam method
 
-The **setParam(...)** method sets new object detector param value. Particular object detector class must provide thread-safe **setParam(...)** method call. This means that the **setParam(...)** method can be safely called from any thread. Method declaration:
+The **setParam(...)** method sets the object detector param value. Particular object detector class must provide thread-safe **setParam(...)** method call. This means that the **setParam(...)** method can be safely called from any thread. Method declaration:
 
 ```cpp
 virtual bool setParam(ObjectDetectorParam id, float value) = 0;
@@ -213,9 +232,9 @@ virtual bool setParam(ObjectDetectorParam id, float value) = 0;
 | Parameter | Description                                                  |
 | --------- | ------------------------------------------------------------ |
 | id        | Parameter ID according to [ObjectDetectorParam](#objectdetectorparam-enum) enum. |
-| value     | Parameter value. Value depends on parameter ID.              |
+| value     | Parameter value. Value depends on parameter ID. The implementation must check that the value is valid (it can be NaN, infinity or out of the range of the parameter) before it is converted or used. |
 
-**Returns:** TRUE if the parameter was set or FALSE if not.
+**Returns:** TRUE if the parameter was set or FALSE if not (invalid value or the parameter is not supported).
 
 
 
@@ -231,7 +250,7 @@ virtual float getParam(ObjectDetectorParam id) = 0;
 | --------- | ------------------------------------------------------------ |
 | id        | Parameter ID according to [ObjectDetectorParam](#objectdetectorparam-enum) enum. |
 
-**Returns:** parameter value or -1 of the parameters doesn't exist in particular object detector class.
+**Returns:** parameter value or -1 if the parameter is not supported by particular object detector class.
 
 
 
@@ -245,7 +264,7 @@ virtual void getParams(ObjectDetectorParams& params) = 0;
 
 | Parameter | Description                                                  |
 | --------- | ------------------------------------------------------------ |
-| params    | Output [ObjectDetectorParams](#objectdetectorparams-class-description) class object. |
+| params    | Output [ObjectDetectorParams](#objectdetectorparams-class-description) class object. If particular object detector doesn't support some params this params must have default values. |
 
 
 
@@ -257,7 +276,7 @@ The **getObjects()** method returns list of detected objects. User can obtain li
 virtual std::vector<Object> getObjects() = 0;
 ```
 
-**Returns:** list of detected objects (see [Object](#object-structure) class description). If no detected object the list will be empty.
+**Returns:** list of detected objects (see [Object](#object-structure) class description). If no detected object the list will be empty. If object detector is disabled the list is always empty.
 
 
 
@@ -303,7 +322,7 @@ virtual bool setMask(cr::video::Frame mask) = 0;
 
 | Parameter | Description                                                  |
 | --------- | ------------------------------------------------------------ |
-| mask      | Detection mask is see [Frame](https://rapidpixel.constantrobotics.com/docs/Service/Frame.html) object with GRAY pixel format. Detector omits image segments, where detection mask pixel values equal 0. |
+| mask      | Detection binary mask: [Frame](https://rapidpixel.constantrobotics.com/docs/Service/Frame.html) object. The object detector must support pixel formats for mask: GRAY, NV12, NV21, YV12 and YU12. Detector omits image segments, where detection mask pixel values equal 0. |
 
 **Returns:** TRUE if the detection mask was set or FALSE if not.
 
@@ -319,10 +338,10 @@ static void encodeSetParamCommand(uint8_t* data, int& size, ObjectDetectorParam 
 
 | Parameter | Description                                                  |
 | --------- | ------------------------------------------------------------ |
-| data      | Pointer to data buffer for encoded command. Must have size >= 11. |
+| data      | Pointer to data buffer for encoded command. Must have size >= 11. If the pointer is nullptr nothing is written and the size is set to 0. |
 | size      | Size of encoded data. Will be 11 bytes.                      |
-| id        | Parameter ID according to [ObjectDetectorParam](#objectdetectorparam-enum) enum. |
-| value     | Parameter value. Value depends on parameter ID.              |
+| id        | Parameter ID according to [ObjectDetectorParam](#objectdetectorparam-enum) enum. The ID is not checked by the method: **decodeCommand(...)** rejects an ID which is not a member of the enum. |
+| value     | Parameter value. Value depends on parameter ID. The value is not checked by the method. |
 
 **encodeSetParamCommand(...)** is a static method and can be used without **ObjectDetector** class instance. This method can be used on client side (control system). Command encoding example:
 
@@ -331,10 +350,11 @@ static void encodeSetParamCommand(uint8_t* data, int& size, ObjectDetectorParam 
 uint8_t data[11];
 // Size of encoded data.
 int size = 0;
-// Random parameter value.
-float outValue = (float)(rand() % 20);
+// Parameter value.
+float value = 10.0f;
 // Encode command.
-ObjectDetector::encodeSetParamCommand(data, size, ObjectDetectorParam::MIN_OBJECT_WIDTH, outValue);
+cr::detector::ObjectDetector::encodeSetParamCommand(
+    data, size, cr::detector::ObjectDetectorParam::MIN_OBJECT_WIDTH, value);
 ```
 
 
@@ -349,9 +369,9 @@ static void encodeCommand(uint8_t* data, int& size, ObjectDetectorCommand id);
 
 | Parameter | Description                                                  |
 | --------- | ------------------------------------------------------------ |
-| data      | Pointer to data buffer for encoded command. Must have size >= 7. |
+| data      | Pointer to data buffer for encoded command. Must have size >= 7. If the pointer is nullptr nothing is written and the size is set to 0. |
 | size      | Size of encoded data. Will be 7 bytes.                       |
-| id        | Command ID according to [ObjectDetectorCommand](#objectdetectorcommand-enum) enum. |
+| id        | Command ID according to [ObjectDetectorCommand](#objectdetectorcommand-enum) enum. The ID is not checked by the method: **decodeCommand(...)** rejects an ID which is not a member of the enum. |
 
 **encodeCommand(...)** is static and used without **ObjectDetector** class instance. This method used on client side (control system). Command encoding example:
 
@@ -361,7 +381,8 @@ uint8_t data[7];
 // Size of encoded data.
 int size = 0;
 // Encode command.
-ObjectDetector::encodeCommand(data, size, ObjectDetectorCommand::RESET);
+cr::detector::ObjectDetector::encodeCommand(
+    data, size, cr::detector::ObjectDetectorCommand::RESET);
 ```
 
 
@@ -376,19 +397,19 @@ static int decodeCommand(uint8_t* data, int size, ObjectDetectorParam& paramId, 
 
 | Parameter | Description                                                  |
 | --------- | ------------------------------------------------------------ |
-| data      | Pointer to input command.                                    |
-| size      | Size of command. 11 bytes for set param command and 7 bytes for action command. |
+| data      | Pointer to input command. Must not be nullptr. The pointer must be valid for **size** bytes. |
+| size      | Size of command. Must be exactly 11 bytes for set param command and exactly 7 bytes for action command. |
 | paramId   | Output (decoded) parameter ID according to [ObjectDetectorParam](#objectdetectorparam-enum) enum. After decoding set param command the method will return parameter ID. |
 | commandId | Output (decoded) command ID according to [ObjectDetectorCommand](#objectdetectorcommand-enum) enum. After decoding COMMAND the method will return command ID. |
-| value     | Parameter value (after decoding set param command).          |
+| value     | Parameter value (after decoding set param command). Set to 0 after decoding action command. |
 
-**Returns:** **0** - in case decoding action command, **1** - in case decoding set param command or **-1** in case error.
+**Returns:** **0** - in case decoding action command, **1** - in case decoding set param command or **-1** in case error (data is nullptr, wrong size, wrong version, wrong command type or ID which is not a member of the enum). The method checks the version (MAJOR.MINOR) of the library which encoded the command. The output arguments are not changed if the method returns -1.
 
 
 
 ## decodeAndExecuteCommand method
 
-The **decodeAndExecuteCommand(...)** method decodes and executes command on object detector side (edge device). Method decodes commands which encoded which prepared with encodeSetParamCommand(...) and encodeCommand(...) methods and call setParam(...) or executeCommand(...) methods. The particular implementation of the object detector must provide thread-safe **decodeAndExecuteCommand(...)** method call. This means that the **decodeAndExecuteCommand(...)** method can be safely called from any thread. Method declaration:
+The **decodeAndExecuteCommand(...)** method decodes and executes command on object detector side (edge device). Method decodes commands which prepared with encodeSetParamCommand(...) and encodeCommand(...) methods and call setParam(...) or executeCommand(...) methods. The particular implementation of the object detector must provide thread-safe **decodeAndExecuteCommand(...)** method call. This means that the **decodeAndExecuteCommand(...)** method can be safely called from any thread. Method declaration:
 
 ```cpp
 virtual bool decodeAndExecuteCommand(uint8_t* data, int size) = 0;
@@ -399,7 +420,7 @@ virtual bool decodeAndExecuteCommand(uint8_t* data, int size) = 0;
 | data      | Pointer to input command.                                    |
 | size      | Size of command. Must be 11 bytes for set param command or 7 bytes for action command. |
 
-**Returns:** TRUE if command decoded and executed (action command or set param command).
+**Returns:** TRUE if command decoded and executed (action command or set param command) or FALSE if not (the command is not valid, see [decodeCommand method](#decodecommand-method), or the command was rejected by the implementation).
 
 
 
@@ -495,7 +516,7 @@ enum class ObjectDetectorParam
     NUM_THREADS,
     /// Processing time of last frame in microseconds.
     PROCESSING_TIME_MCS,
-    /// Algorithm type. Depends on implementation.
+    /// Algorithm / backend type. Depends on implementation.
     TYPE,
     /// Mode. Default: 0 - Off, 1 - On.
     MODE,
@@ -572,7 +593,7 @@ struct Object
 
 | Field   | Type  | Description                                                  |
 | ------- | ----- | ------------------------------------------------------------ |
-| id      | int   | Object ID. Must be uniques for particular object. Object detector must assign unique ID for each detected object. This is necessary for control algorithms to distinguish different objects from frame to frame. |
+| id      | int   | Object ID. Must be unique for particular object. Object detector must assign unique ID for each detected object. This is necessary for control algorithms to distinguish different objects from frame to frame. |
 | frameId | int   | Frame ID. Must be the same as frame ID of processed video frame. |
 | type    | int   | Object type. Depends on implementation. For example detection neural networks can detect multiple type of objects. |
 | width   | int   | Object rectangle width, pixels. Must be MIN_OBJECT_WIDTH <= width <= MAX_OBJECT_WIDTH (see [ObjectDetectorParam](#objectdetectorparam-enum) enum description). |
@@ -597,8 +618,9 @@ struct Object
 class ObjectDetectorParams
 {
 public:
-    /// Init string. Depends on implementation.
-    std::string initString{ "" };
+    /// Init string. Depends on implementation. Must not contain the null
+    /// character to be serialized by encode(...).
+    std::string initString;
     /// Logging mode. Values:
     /// 0 - Disable,
     /// 1 - Only file,
@@ -637,7 +659,7 @@ public:
     /// Horizontal track detection criteria, frames. By default shows how many
     /// frames the objects must move in any(+/-) horizontal direction to be
     /// detected.
-    int xDetectionCriteria{1};
+    int xDetectionCriteria{ 1 };
     /// Vertical track detection criteria, frames. By default shows how many
     /// frames the objects must move in any(+/-) vertical direction to be
     /// detected.
@@ -656,7 +678,7 @@ public:
     int processingTimeMcs{ 0 };
     /// Algorithm / backend type. Depends on implementation.
     int type{ 0 };
-    /// Mode. Default: false - Off, on - On.
+    /// Mode. Default: false - Off, true - On.
     bool enable{ true };
     /// Custom parameter. Depends on implementation.
     float custom1{ 0.0f };
@@ -666,13 +688,17 @@ public:
     float custom3{ 0.0f };
     /// List of detected objects.
     std::vector<Object> objects;
-    // A list of object class names used in detectors that recognize different
-    // object classes. Detected objects have an attribute called 'type.'
-    // If a detector doesn't support object class recognition or can't determine
-    // the object type, the 'type' field must be set to 0. Otherwise, the 'type'
-    // should correspond to the ordinal number of the class name from the 
-    // 'classNames' list (if the list was set in params), starting from 1
-    // (where the first element in the list has 'type == 1').
+    /// A list of object class names used in detectors that recognize different
+    /// object classes. Detected objects have an attribute called 'type.'
+    /// If a detector doesn't support object class recognition or can't
+    /// determine the object type, the 'type' field must be set to 0.
+    /// Otherwise, the 'type' should correspond to the ordinal number of the
+    /// class name from the 'classNames' list (if the list was set in params),
+    /// starting from 1 (where the first element in the list has 'type == 1').
+    /// The names are serialized by encode(...) as null terminated strings: a
+    /// name must not contain the null character and an empty name is allowed
+    /// only as the last element of the list. decode(...) returns the list
+    /// without that empty name.
     std::vector<std::string> classNames{ "" };
 
     JSON_READABLE(ObjectDetectorParams, initString, logMode, frameBufferSize,
@@ -681,7 +707,7 @@ public:
                   minDetectionProbability, xDetectionCriteria,
                   yDetectionCriteria, resetCriteria, sensitivity, scaleFactor,
                   numThreads, type, enable, custom1, custom2, custom3,
-                  classNames);
+                  classNames)
 
     /// Default constructor.
     ObjectDetectorParams() = default;
@@ -690,7 +716,7 @@ public:
     ObjectDetectorParams(const ObjectDetectorParams& src) = default;
 
     /// Copy operator.
-    ObjectDetectorParams& operator= (const ObjectDetectorParams& src);
+    ObjectDetectorParams& operator= (const ObjectDetectorParams& src) = default;
 
     /// Encode (serialize) params.
     bool encode(uint8_t* data, int bufferSize, int& size,
@@ -724,15 +750,17 @@ public:
 | scaleFactor             | int         | Frame scaling factor for processing purposes. Reduce the image size by scaleFactor times horizontally and vertically for faster processing. |
 | numThreads              | int         | Num threads. Number of threads for parallel computing.       |
 | processingTimeMcs       | int         | Processing time of last frame in microseconds.               |
-| type                    | int         | Algorithm type. Depends on implementation.                   |
+| type                    | int         | Algorithm / backend type. Depends on implementation.         |
 | enable                  | bool        | Mode: false - Off, true - On.                                |
 | custom1                 | float       | Custom parameter. Depends on implementation.                 |
 | custom2                 | float       | Custom parameter. Depends on implementation.                 |
 | custom3                 | float       | Custom parameter. Depends on implementation.                 |
 | objects                 | std::vector | List of detected objects.                                    |
-| classNames              | std::vector | A list of object class names used in detectors that recognize different object classes. Detected objects have an attribute called 'type.' If a detector doesn't support object class recognition or can't determine the object type, the 'type' field must be set to 0. Otherwise, the 'type'  should correspond to the ordinal number of the class name from the 'classNames' list (if the list was set in params), starting from 1 (where the first element in the list has 'type == 1'). |
+| classNames              | std::vector | A list of object class names used in detectors that recognize different object classes. Detected objects have an attribute called 'type.' If a detector doesn't support object class recognition or can't determine the object type, the 'type' field must be set to 0. Otherwise, the 'type'  should correspond to the ordinal number of the class name from the 'classNames' list (if the list was set in params), starting from 1 (where the first element in the list has 'type == 1'). The names are serialized by **encode(...)** as null terminated strings: a name must not contain the null character and an empty name is allowed only as the last element of the list. **decode(...)** returns the list without that empty name. |
 
-**None:** *ObjectDetectorParams class fields listed in Table 5 **must** reflect params set/get by methods setParam(...) and getParam(...).* 
+The values of the fields are transported by the class (JSON, serialization) and are not checked against any range: the object detector implementation must validate them before use.
+
+**Note:** *ObjectDetectorParams class fields listed in Table 5 **must** reflect params set/get by methods setParam(...) and getParam(...).*
 
 
 
@@ -746,12 +774,12 @@ bool encode(uint8_t* data, int bufferSize, int& size, ObjectDetectorParamsMask* 
 
 | Parameter      | Value                                                        |
 | -------------- | ------------------------------------------------------------ |
-| data           | Pointer to data buffer. Buffer size should enough size.      |
-| dataBufferSize | Size of data buffer. If the data buffer size is not large enough to serialize all detected objects (40 bytes per object), not all objects will be included in the data. If buffer has not enough size to encode all parameters the method will return FALSE. |
-| size           | Size of encoded data.                                        |
-| mask           | Parameters mask - pointer to **ObjectDetectorParamsMask** structure. **ObjectDetectorParamsMask** (declared in ObjectDetector.h file) determines flags for each field (parameter) declared in [ObjectDetectorParams](#objectdetectorparams-class-description) class. If the user wants to exclude any parameters from serialization, he can put a pointer to the mask. If the user wants to exclude a particular parameter from serialization, he should set the corresponding flag in the ObjectDetectorParamsMask structure. |
+| data           | Pointer to data buffer. Must not be nullptr. The pointer must be valid for **bufferSize** bytes. |
+| bufferSize     | Size of data buffer, bytes. The buffer must hold all selected fields except the objects, the object counter, the init string and all class names with their null terminators. The size of the data with all fields selected, without objects, with an empty init string and with the default list of class names is 102 bytes. If the data buffer size is not large enough to serialize all detected objects (40 bytes per object), only the objects which fit into the buffer are included in the data. |
+| size           | Size of encoded data. Set to 0 if the method returns FALSE.  |
+| mask           | Parameters mask - pointer to **ObjectDetectorParamsMask** structure. **ObjectDetectorParamsMask** (declared in ObjectDetector.h file) determines flags for each field (parameter) declared in [ObjectDetectorParams](#objectdetectorparams-class-description) class. If the user wants to exclude any parameters from serialization, he can put a pointer to the mask. If the user wants to exclude a particular parameter from serialization, he should set the corresponding flag in the ObjectDetectorParamsMask structure. If the pointer is nullptr all fields are serialized. |
 
-**Returns:** TRUE is params serialized or FALSE if not.
+**Returns:** TRUE if params serialized or FALSE if not (data is nullptr, the buffer is too small to hold the selected fields, the init string or a class name contains the null character, an empty class name is not the last one in the list). The method does not write outside of the buffer. If FALSE is returned the content of the buffer is not defined.
 
 **ObjectDetectorParamsMask** structure declaration:
 
@@ -790,118 +818,130 @@ struct ObjectDetectorParamsMask
 Example without parameters mask:
 
 ```cpp
-// Prepare random params.
-ObjectDetectorParams in;
-in.logMode = rand() % 255;
-in.classNames = { "apple", "banana", "orange", "pineapple", "strawberry",
-                  "watermelon", "lemon", "peach", "pear", "plum" };
+// Prepare params.
+cr::detector::ObjectDetectorParams in;
+in.logMode = 2;
+in.classNames = {"apple", "banana", "orange", "pineapple", "strawberry",
+                 "watermelon", "lemon", "peach", "pear", "plum"};
 for (int i = 0; i < 5; ++i)
 {
-    Object obj;
-    obj.id = rand() % 255;
-    obj.type = rand() % 255;
-    obj.width = rand() % 255;
-    obj.height = rand() % 255;
-    obj.x = rand() % 255;
-    obj.y = rand() % 255;
-    obj.vX = rand() % 255;
-    obj.vY = rand() % 255;
-    obj.p = rand() % 255;
+    cr::detector::Object obj;
+    obj.id = i + 1;
+    obj.type = i + 1;
+    obj.width = 20 + i;
+    obj.height = 30 + i;
+    obj.x = 100 * i;
+    obj.y = 50 * i;
+    obj.vX = 1.5f * static_cast<float>(i);
+    obj.vY = 0.5f * static_cast<float>(i);
+    obj.p = 0.9f;
     in.objects.push_back(obj);
 }
 
 // Encode data.
 uint8_t data[2048];
 int size = 0;
-in.encode(data, 2048, size);
-cout << "Encoded data size: " << size << " bytes" << endl;
+if (!in.encode(data, 2048, size))
+{
+    std::cout << "Can't encode params" << std::endl;
+    return false;
+}
+std::cout << "Encoded data size: " << size << " bytes" << std::endl;
 ```
 
 Example with parameters mask:
 
 ```cpp
-// Prepare random params.
-ObjectDetectorParams in;
-in.logMode = rand() % 255;
-in.classNames = { "apple", "banana", "orange", "pineapple", "strawberry",
-                  "watermelon", "lemon", "peach", "pear", "plum" };
+// Prepare params.
+cr::detector::ObjectDetectorParams in;
+in.logMode = 2;
+in.classNames = {"apple", "banana", "orange", "pineapple", "strawberry",
+                 "watermelon", "lemon", "peach", "pear", "plum"};
 for (int i = 0; i < 5; ++i)
 {
-    Object obj;
-    obj.id = rand() % 255;
-    obj.type = rand() % 255;
-    obj.width = rand() % 255;
-    obj.height = rand() % 255;
-    obj.x = rand() % 255;
-    obj.y = rand() % 255;
-    obj.vX = rand() % 255;
-    obj.vY = rand() % 255;
-    obj.p = rand() % 255;
+    cr::detector::Object obj;
+    obj.id = i + 1;
+    obj.type = i + 1;
+    obj.width = 20 + i;
+    obj.height = 30 + i;
+    obj.x = 100 * i;
+    obj.y = 50 * i;
+    obj.vX = 1.5f * static_cast<float>(i);
+    obj.vY = 0.5f * static_cast<float>(i);
+    obj.p = 0.9f;
     in.objects.push_back(obj);
 }
 
 // Prepare mask.
-ObjectDetectorParamsMask mask;
+cr::detector::ObjectDetectorParamsMask mask;
 mask.logMode = false; // Exclude parameter from serialization.
 
 // Encode data.
 uint8_t data[2048];
 int size = 0;
-in.encode(data, 2048, size, &mask)
-cout << "Encoded data size: " << size << " bytes" << endl;
+if (!in.encode(data, 2048, size, &mask))
+{
+    std::cout << "Can't encode params" << std::endl;
+    return false;
+}
+std::cout << "Encoded data size: " << size << " bytes" << std::endl;
 ```
 
 
 
 ## Deserialize object detector params
 
-[ObjectDetectorParams](#objectdetectorparams-class-description) class provides method **decode(...)** to deserialize params (fields of [ObjectDetectorParams](#objectdetectorparams-class-description) class, see Table 5). Deserialization of params necessary in case when you need to receive params via communication channels. Method automatically recognizes which parameters were serialized by **encode(...)** method. Method declaration:
+[ObjectDetectorParams](#objectdetectorparams-class-description) class provides method **decode(...)** to deserialize params (fields of [ObjectDetectorParams](#objectdetectorparams-class-description) class, see Table 5). Deserialization of params necessary in case when you need to receive params via communication channels. Method automatically recognizes which parameters were serialized by **encode(...)** method. The method checks the data type, the version (MAJOR.MINOR), the size of the data before reading each field, the number of objects against the size of the data and that the init string and the class names are null terminated. The data must not have bytes after the last field. Fields which are not serialized (excluded by the mask) are set to zero (empty for the init string, the objects and the class names). Values of the fields are not checked against any range. Method declaration:
 
 ```cpp
 bool decode(uint8_t* data, int dataSize);
 ```
 
-| Parameter | Value                          |
-| --------- | ------------------------------ |
-| data      | Pointer to encode data buffer. |
-| dataSize  | Data size.                     |
+| Parameter | Value                                                        |
+| --------- | ------------------------------------------------------------ |
+| data      | Pointer to encode data buffer. Must not be nullptr. The pointer must be valid for **dataSize** bytes. |
+| dataSize  | Data size, bytes.                                            |
 
-**Returns:** TRUE if data decoded (deserialized) or FALSE if not.
+**Returns:** TRUE if data decoded (deserialized) or FALSE if not (data is nullptr, the data is too short, wrong data type or version, wrong number of objects, the string is not terminated, bytes after the last field). If FALSE is returned the object is not changed.
 
 Example:
 
 ```cpp
-// Prepare random params.
-ObjectDetectorParams in;
-in.logMode = rand() % 255;
-in.classNames = { "apple", "banana", "orange", "pineapple", "strawberry",
-                  "watermelon", "lemon", "peach", "pear", "plum" };
+// Prepare params.
+cr::detector::ObjectDetectorParams in;
+in.logMode = 2;
+in.classNames = {"apple", "banana", "orange", "pineapple", "strawberry",
+                 "watermelon", "lemon", "peach", "pear", "plum"};
 for (int i = 0; i < 5; ++i)
 {
-    Object obj;
-    obj.id = rand() % 255;
-    obj.type = rand() % 255;
-    obj.width = rand() % 255;
-    obj.height = rand() % 255;
-    obj.x = rand() % 255;
-    obj.y = rand() % 255;
-    obj.vX = rand() % 255;
-    obj.vY = rand() % 255;
-    obj.p = rand() % 255;
+    cr::detector::Object obj;
+    obj.id = i + 1;
+    obj.type = i + 1;
+    obj.width = 20 + i;
+    obj.height = 30 + i;
+    obj.x = 100 * i;
+    obj.y = 50 * i;
+    obj.vX = 1.5f * static_cast<float>(i);
+    obj.vY = 0.5f * static_cast<float>(i);
+    obj.p = 0.9f;
     in.objects.push_back(obj);
 }
 
 // Encode data.
 uint8_t data[2048];
 int size = 0;
-in.encode(data, 2048, size);
-cout << "Encoded data size: " << size << " bytes" << endl;
+if (!in.encode(data, 2048, size))
+{
+    std::cout << "Can't encode params" << std::endl;
+    return false;
+}
+std::cout << "Encoded data size: " << size << " bytes" << std::endl;
 
 // Decode data.
-ObjectDetectorParams out;
+cr::detector::ObjectDetectorParams out;
 if (!out.decode(data, size))
 {
-    cout << "Can't decode data" << endl;
+    std::cout << "Can't decode data" << std::endl;
     return false;
 }
 ```
@@ -910,46 +950,38 @@ if (!out.decode(data, size))
 
 ## Read params from JSON file and write to JSON file
 
-**ObjectDetector** library depends on **ConfigReader** library which provides method to read params from JSON file and to write params to JSON file. Example of writing and reading params to JSON file:
+**ObjectDetector** library depends on **ConfigReader** library which provides method to read params from JSON file and to write params to JSON file. The list of objects (**objects**) and the processing time (**processingTimeMcs**) are not stored in JSON. All other fields of [ObjectDetectorParams](#objectdetectorparams-class-description) class are required in the JSON file: the **get(...)** method of **ConfigReader** returns false and does not change the object if a field is missing or has a wrong type. Example of writing and reading params to JSON file:
 
 ```cpp
-// Prepare random params.
-ObjectDetectorParams in;
-in.logMode = rand() % 255;
-in.classNames = { "apple", "banana", "orange", "pineapple", "strawberry",
-                  "watermelon", "lemon", "peach", "pear", "plum" };
-for (int i = 0; i < 5; ++i)
-{
-    Object obj;
-    obj.id = rand() % 255;
-    obj.type = rand() % 255;
-    obj.width = rand() % 255;
-    obj.height = rand() % 255;
-    obj.x = rand() % 255;
-    obj.y = rand() % 255;
-    obj.vX = rand() % 255;
-    obj.vY = rand() % 255;
-    obj.p = rand() % 255;
-    in.objects.push_back(obj);
-}
+// Prepare params.
+cr::detector::ObjectDetectorParams in;
+in.initString = "init";
+in.logMode = 2;
+in.minObjectWidth = 8;
+in.classNames = {"apple", "banana", "orange", "pineapple", "strawberry",
+                 "watermelon", "lemon", "peach", "pear", "plum"};
 
 // Write params to file.
 cr::utils::ConfigReader inConfig;
-inConfig.set(in, "ObjectDetectorParams");
-inConfig.writeToFile("ObjectDetectorParams.json");
-
-// Read params from file.
-cr::utils::ConfigReader outConfig;
-if(!outConfig.readFromFile("ObjectDetectorParams.json"))
+if (!inConfig.set(in, "ObjectDetectorParams") ||
+    !inConfig.writeToFile("ObjectDetectorParams.json"))
 {
-    cout << "Can't open config file" << endl;
+    std::cout << "Can't write params to file" << std::endl;
     return false;
 }
 
-ObjectDetectorParams out;
-if(!outConfig.get(out, "ObjectDetectorParams"))
+// Read params from file.
+cr::utils::ConfigReader outConfig;
+if (!outConfig.readFromFile("ObjectDetectorParams.json"))
 {
-    cout << "Can't read params from file" << endl;
+    std::cout << "Can't open config file" << std::endl;
+    return false;
+}
+
+cr::detector::ObjectDetectorParams out;
+if (!outConfig.get(out, "ObjectDetectorParams"))
+{
+    std::cout << "Can't read params from file" << std::endl;
     return false;
 }
 ```
@@ -959,6 +991,29 @@ if(!outConfig.get(out, "ObjectDetectorParams"))
 ```json
 {
     "ObjectDetectorParams": {
+        "initString": "init",
+        "logMode": 2,
+        "frameBufferSize": 1,
+        "minObjectWidth": 8,
+        "maxObjectWidth": 128,
+        "minObjectHeight": 4,
+        "maxObjectHeight": 128,
+        "minXSpeed": 0.0,
+        "maxXSpeed": 30.0,
+        "minYSpeed": 0.0,
+        "maxYSpeed": 30.0,
+        "minDetectionProbability": 0.5,
+        "xDetectionCriteria": 1,
+        "yDetectionCriteria": 1,
+        "resetCriteria": 1,
+        "sensitivity": 0.039999999105930328,
+        "scaleFactor": 1,
+        "numThreads": 1,
+        "type": 0,
+        "enable": true,
+        "custom1": 0.0,
+        "custom2": 0.0,
+        "custom3": 0.0,
         "classNames": [
             "apple",
             "banana",
@@ -970,30 +1025,7 @@ if(!outConfig.get(out, "ObjectDetectorParams"))
             "peach",
             "pear",
             "plum"
-        ],
-        "custom1": 72.0,
-        "custom2": 162.0,
-        "custom3": 178.0,
-        "enable": false,
-        "frameBufferSize": 63,
-        "initString": "sfsfsfsfsf",
-        "logMode": 33,
-        "maxObjectHeight": 68,
-        "maxObjectWidth": 57,
-        "maxXSpeed": 210.0,
-        "maxYSpeed": 243.0,
-        "minDetectionProbability": 52.0,
-        "minObjectHeight": 244,
-        "minObjectWidth": 178,
-        "minXSpeed": 53.0,
-        "minYSpeed": 198.0,
-        "numThreads": 143,
-        "resetCriteria": 8,
-        "scaleFactor": 209,
-        "sensitivity": 236.0,
-        "type": 127,
-        "xDetectionCriteria": 180,
-        "yDetectionCriteria": 161
+        ]
     }
 }
 ```
@@ -1002,17 +1034,51 @@ if(!outConfig.get(out, "ObjectDetectorParams"))
 
 # Build and connect to your project
 
-Typical commands to build **ObjectDetector** library:
+
+
+## Build stand alone
+
+The repository does not contain sub-repositories. The libraries **ObjectDetector** depends on (**Frame** and **ConfigReader**) must be cloned into the same folder as **ObjectDetector**. The folder structure must be:
 
 ```bash
-git clone https://github.com/ConstantRobotics-Ltd/ObjectDetector.git
+<work folder>
+    ObjectDetector
+    Frame
+    ConfigReader
+```
+
+Typical commands to build the library, the test application and the example (use the URLs of the repositories provided to you):
+
+```bash
+git clone <ObjectDetector repository URL>
+git clone <Frame repository URL>
+git clone <ConfigReader repository URL>
 cd ObjectDetector
-git submodule update --init --recursive
 mkdir build
 cd build
 cmake ..
 make
 ```
+
+On Windows use `cmake --build . --config Release` instead of `make`. If **ObjectDetector** is the top-level CMake project, the main CMakeLists.txt file adds the folders ../Frame and ../ConfigReader (in this order) before the library itself. If a folder does not exist CMake stops with an error.
+
+
+
+## CMake options
+
+**Table 6** - CMake options of the repository. In the options below ${PARENT} is the prefix defined by the top-level project (empty if **ObjectDetector** is the top-level project).
+
+| Option                              | Default                                           | Description                                                  |
+| ----------------------------------- | ------------------------------------------------- | ------------------------------------------------------------ |
+| ${PARENT}_OBJECT_DETECTOR           | ON                                                | Build the library.                                           |
+| ${PARENT}_OBJECT_DETECTOR_TEST      | ON (stand alone), OFF (included in other project) | Build the test application.                                  |
+| ${PARENT}_OBJECT_DETECTOR_EXAMPLE   | ON (stand alone), OFF (included in other project) | Build the example.                                           |
+| ${PARENT}_SUBMODULE_CACHE_OVERWRITE | ON                                                | Forced rewriting of the options above in the CMake cache. The top-level project sets it to OFF when it includes **ObjectDetector** as a sub-repository. |
+| CMAKE_BUILD_TYPE                    | Release (if not specified)                        | Build type.                                                  |
+
+
+
+## Connect to your project
 
 If you want connect **ObjectDetector** library to your CMake project as source code you can make follow. For example, if your repository has structure:
 
@@ -1024,15 +1090,17 @@ src
     yourLib.cpp
 ```
 
-You can add repository **ObjectDetector** as submodule by commands:
+You can add the repository **ObjectDetector** and the repositories of the libraries it depends on as sub-repositories by commands:
 
 ```bash
-cd <your respository folder>
-git submodule add https://github.com/ConstantRobotics-Ltd/ObjectDetector.git 3rdparty/ObjectDetector
+cd <your repository folder>
+git submodule add <Frame repository URL> 3rdparty/Frame
+git submodule add <ConfigReader repository URL> 3rdparty/ConfigReader
+git submodule add <ObjectDetector repository URL> 3rdparty/ObjectDetector
 git submodule update --init --recursive
 ```
 
-In you repository folder the folder **3rdparty/ObjectDetector** will be created which contains files of **ObjectDetector** repository with subrepositories **Frame** and **ConfigReader**. New structure of your repository:
+In your repository folder the folder **3rdparty** will be created which contains the files of **Frame**, **ConfigReader** and **ObjectDetector** repositories. The structure of your repository:
 
 ```bash
 CMakeLists.txt
@@ -1041,10 +1109,12 @@ src
     yourLib.h
     yourLib.cpp
 3rdparty
+    Frame
+    ConfigReader
     ObjectDetector
 ```
 
-Create CMakeLists.txt file in **3rdparty** folder. CMakeLists.txt should contain:
+**ObjectDetector** does not add **Frame** and **ConfigReader** when it is included in another project: the project must add them. Create CMakeLists.txt file in **3rdparty** folder. CMakeLists.txt adds the dependencies in dependency order and then **ObjectDetector**. CMakeLists.txt should contain:
 
 ```cmake
 cmake_minimum_required(VERSION 3.13)
@@ -1068,6 +1138,19 @@ SET(${PARENT}_SUBMODULE_CACHE_OVERWRITE OFF CACHE BOOL "" FORCE)
 ## CONFIGURATION
 ## 3rd-party submodules configuration
 ################################################################################
+SET(${PARENT}_SUBMODULE_FRAME                           ON  CACHE BOOL "" FORCE)
+if (${PARENT}_SUBMODULE_FRAME)
+    SET(${PARENT}_FRAME                                 ON  CACHE BOOL "" FORCE)
+    SET(${PARENT}_FRAME_TEST                            OFF CACHE BOOL "" FORCE)
+endif()
+
+SET(${PARENT}_SUBMODULE_CONFIG_READER                   ON  CACHE BOOL "" FORCE)
+if (${PARENT}_SUBMODULE_CONFIG_READER)
+    SET(${PARENT}_CONFIG_READER                         ON  CACHE BOOL "" FORCE)
+    SET(${PARENT}_CONFIG_READER_EXAMPLES                OFF CACHE BOOL "" FORCE)
+    SET(${PARENT}_CONFIG_READER_TESTS                   OFF CACHE BOOL "" FORCE)
+endif()
+
 SET(${PARENT}_SUBMODULE_OBJECT_DETECTOR                 ON  CACHE BOOL "" FORCE)
 if (${PARENT}_SUBMODULE_OBJECT_DETECTOR)
     SET(${PARENT}_OBJECT_DETECTOR                       ON  CACHE BOOL "" FORCE)
@@ -1079,12 +1162,20 @@ endif()
 ## INCLUDING SUBDIRECTORIES
 ## Adding subdirectories according to the 3rd-party configuration
 ################################################################################
+if (${PARENT}_SUBMODULE_FRAME)
+    add_subdirectory(Frame)
+endif()
+
+if (${PARENT}_SUBMODULE_CONFIG_READER)
+    add_subdirectory(ConfigReader)
+endif()
+
 if (${PARENT}_SUBMODULE_OBJECT_DETECTOR)
     add_subdirectory(ObjectDetector)
 endif()
 ```
 
-File **3rdparty/CMakeLists.txt** adds folder **ObjectDetector** to your project and excludes test application and example (ObjectDetector class test applications and example) from compiling (by default test applications and example are excluded from compiling if **ObjectDetector** is included as sub-repository). The new structure of your repository:
+File **3rdparty/CMakeLists.txt** adds the folders **Frame**, **ConfigReader** and **ObjectDetector** to your project and excludes test application and example (**ObjectDetector** class test application and example) from compiling (by default test applications and example are excluded from compiling if **ObjectDetector** is included as sub-repository). The structure of your repository:
 
 ```bash
 CMakeLists.txt
@@ -1094,6 +1185,8 @@ src
     yourLib.cpp
 3rdparty
     CMakeLists.txt
+    Frame
+    ConfigReader
     ObjectDetector
 ```
 
@@ -1109,16 +1202,24 @@ Next you have to include ObjectDetector library in your **src/CMakeLists.txt** f
 target_link_libraries(${PROJECT_NAME} ObjectDetector)
 ```
 
+If **Frame** or **ConfigReader** is not added by your project, the build stops with the compile error "Frame.h: No such file or directory" ("ConfigReader.h: No such file or directory").
+
 Done!
+
+
+
+# Portability
+
+The encoded data of [ObjectDetectorParams](#objectdetectorparams-class-description) class and of the commands stores int and float values as raw 4 bytes values in the byte order of the host. The sizes of int and float (4 bytes) are checked at compile time. The library does not use SIMD instructions, threads, operating system interfaces or environment variables. The library was built and its test application was run with MSVC 2022 (x64, Windows), GCC 12 and 13 and Clang 15 and 18 (x86-64, Linux) and with GCC 13 for aarch64 (Linux, the test application was run under QEMU).
 
 
 
 # How to create a custom implementation
 
-The **ObjectDetector** class provides only an interface, data structures, and methods for encoding and decoding commands and params. To create your own implementation of the object detector, you must include the ObjectDetector repository in your project (see [Build and connect to your project](#build-and-connect-to-your-project) section). The catalogue **example** (see [Library files](#library-files) section) includes an example of the design of the custom object detector. You must implement all the methods of the ObjectDetector interface class. Custom object detector class declaration:
+The **ObjectDetector** class provides only an interface, data structures, and methods for encoding and decoding commands and params. To create your own implementation of the object detector, you must include the ObjectDetector repository in your project (see [Build and connect to your project](#build-and-connect-to-your-project) section). The catalogue **example** (see [Library files](#library-files) section) includes an example of the design of the custom object detector. You must implement all the methods of the ObjectDetector interface class. The example validates the values which come from outside (params, commands) and provides thread-safe methods: the params are protected by a mutex, so the class does not have copy and move operations. Custom object detector class declaration:
 
 ```cpp
-class CustomObjectDetector: public ObjectDetector
+class CustomObjectDetector : public ObjectDetector
 {
 public:
 
@@ -1126,41 +1227,49 @@ public:
     CustomObjectDetector();
 
     /// Class destructor.
-    ~CustomObjectDetector();
+    ~CustomObjectDetector() override;
 
-    /// Get string of current library version.
-    std::string getVersion();
+    /// Copy and move operations are deleted: the class owns a mutex.
+    CustomObjectDetector(const CustomObjectDetector&) = delete;
+    CustomObjectDetector(CustomObjectDetector&&) = delete;
+    CustomObjectDetector& operator= (const CustomObjectDetector&) = delete;
+    CustomObjectDetector& operator= (CustomObjectDetector&&) = delete;
+
+    /// Get string of current class version.
+    static std::string getVersion();
 
     /// Init object detector.
-    bool initObjectDetector(ObjectDetectorParams& params);
+    bool initObjectDetector(ObjectDetectorParams& params) override;
 
     /// Set object detector param.
-    bool setParam(ObjectDetectorParam id, float value);
+    bool setParam(ObjectDetectorParam id, float value) override;
 
     /// Get object detector param value.
-    float getParam(ObjectDetectorParam id);
+    float getParam(ObjectDetectorParam id) override;
 
     /// Get object detector params structure.
-    void getParams(ObjectDetectorParams& params);
+    void getParams(ObjectDetectorParams& params) override;
 
     /// Get list of objects.
-    std::vector<Object> getObjects();
+    std::vector<Object> getObjects() override;
 
     /// Execute command.
-    bool executeCommand(ObjectDetectorCommand id);
+    bool executeCommand(ObjectDetectorCommand id) override;
 
     /// Perform detection.
-    bool detect(cr::video::Frame& frame);
+    bool detect(cr::video::Frame& frame) override;
 
     /// Set detection mask.
-    bool setMask(cr::video::Frame mask);
+    bool setMask(cr::video::Frame mask) override;
 
-    /// Decode command.
-    bool decodeAndExecuteCommand(uint8_t* data, int size);
+    /// Decode and execute command.
+    bool decodeAndExecuteCommand(uint8_t* data, int size) override;
 
 private:
 
-    /// Object detector params (default params).
+    /// Object detector params. Protected by m_paramsMutex.
     ObjectDetectorParams m_params;
+    /// Mutex to protect m_params.
+    std::mutex m_paramsMutex;
 };
 ```
