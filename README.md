@@ -139,10 +139,10 @@ public:
     virtual bool executeCommand(ObjectDetectorCommand id) = 0;
 
     /// Perform detection.
-    virtual bool detect(cr::video::Frame& frame) = 0;
+    virtual bool detect(rapidpixel::Frame& frame) = 0;
 
     /// Set detection mask.
-    virtual bool setMask(cr::video::Frame mask) = 0;
+    virtual bool setMask(rapidpixel::Frame mask) = 0;
 
     /// Encode set param command.
     static void encodeSetParamCommand(
@@ -194,7 +194,7 @@ Method can be used without **ObjectDetector** class instance:
 
 ```cpp
 std::cout << "ObjectDetector class version: " <<
-             cr::detector::ObjectDetector::getVersion() << std::endl;
+             rapidpixel::ObjectDetector::getVersion() << std::endl;
 ```
 
 Console output:
@@ -301,7 +301,7 @@ virtual bool executeCommand(ObjectDetectorCommand id) = 0;
 The **detect(...)** method performs detection algorithm. Method declaration:
 
 ```cpp
-virtual bool detect(cr::video::Frame& frame) = 0;
+virtual bool detect(rapidpixel::Frame& frame) = 0;
 ```
 
 | Parameter | Description                                                  |
@@ -317,7 +317,7 @@ virtual bool detect(cr::video::Frame& frame) = 0;
 The **setMask(...)** method designed to set detection mask. Method declaration:
 
 ```cpp
-virtual bool setMask(cr::video::Frame mask) = 0;
+virtual bool setMask(rapidpixel::Frame mask) = 0;
 ```
 
 | Parameter | Description                                                  |
@@ -353,8 +353,8 @@ int size = 0;
 // Parameter value.
 float value = 10.0f;
 // Encode command.
-cr::detector::ObjectDetector::encodeSetParamCommand(
-    data, size, cr::detector::ObjectDetectorParam::MIN_OBJECT_WIDTH, value);
+rapidpixel::ObjectDetector::encodeSetParamCommand(
+    data, size, rapidpixel::ObjectDetectorParam::MIN_OBJECT_WIDTH, value);
 ```
 
 
@@ -381,8 +381,8 @@ uint8_t data[7];
 // Size of encoded data.
 int size = 0;
 // Encode command.
-cr::detector::ObjectDetector::encodeCommand(
-    data, size, cr::detector::ObjectDetectorCommand::RESET);
+rapidpixel::ObjectDetector::encodeCommand(
+    data, size, rapidpixel::ObjectDetectorCommand::RESET);
 ```
 
 
@@ -819,13 +819,13 @@ Example without parameters mask:
 
 ```cpp
 // Prepare params.
-cr::detector::ObjectDetectorParams in;
+rapidpixel::ObjectDetectorParams in;
 in.logMode = 2;
 in.classNames = {"apple", "banana", "orange", "pineapple", "strawberry",
                  "watermelon", "lemon", "peach", "pear", "plum"};
 for (int i = 0; i < 5; ++i)
 {
-    cr::detector::Object obj;
+    rapidpixel::Object obj;
     obj.id = i + 1;
     obj.type = i + 1;
     obj.width = 20 + i;
@@ -853,13 +853,13 @@ Example with parameters mask:
 
 ```cpp
 // Prepare params.
-cr::detector::ObjectDetectorParams in;
+rapidpixel::ObjectDetectorParams in;
 in.logMode = 2;
 in.classNames = {"apple", "banana", "orange", "pineapple", "strawberry",
                  "watermelon", "lemon", "peach", "pear", "plum"};
 for (int i = 0; i < 5; ++i)
 {
-    cr::detector::Object obj;
+    rapidpixel::Object obj;
     obj.id = i + 1;
     obj.type = i + 1;
     obj.width = 20 + i;
@@ -873,7 +873,7 @@ for (int i = 0; i < 5; ++i)
 }
 
 // Prepare mask.
-cr::detector::ObjectDetectorParamsMask mask;
+rapidpixel::ObjectDetectorParamsMask mask;
 mask.logMode = false; // Exclude parameter from serialization.
 
 // Encode data.
@@ -908,13 +908,13 @@ Example:
 
 ```cpp
 // Prepare params.
-cr::detector::ObjectDetectorParams in;
+rapidpixel::ObjectDetectorParams in;
 in.logMode = 2;
 in.classNames = {"apple", "banana", "orange", "pineapple", "strawberry",
                  "watermelon", "lemon", "peach", "pear", "plum"};
 for (int i = 0; i < 5; ++i)
 {
-    cr::detector::Object obj;
+    rapidpixel::Object obj;
     obj.id = i + 1;
     obj.type = i + 1;
     obj.width = 20 + i;
@@ -938,7 +938,7 @@ if (!in.encode(data, 2048, size))
 std::cout << "Encoded data size: " << size << " bytes" << std::endl;
 
 // Decode data.
-cr::detector::ObjectDetectorParams out;
+rapidpixel::ObjectDetectorParams out;
 if (!out.decode(data, size))
 {
     std::cout << "Can't decode data" << std::endl;
@@ -954,7 +954,7 @@ if (!out.decode(data, size))
 
 ```cpp
 // Prepare params.
-cr::detector::ObjectDetectorParams in;
+rapidpixel::ObjectDetectorParams in;
 in.initString = "init";
 in.logMode = 2;
 in.minObjectWidth = 8;
@@ -962,7 +962,7 @@ in.classNames = {"apple", "banana", "orange", "pineapple", "strawberry",
                  "watermelon", "lemon", "peach", "pear", "plum"};
 
 // Write params to file.
-cr::utils::ConfigReader inConfig;
+rapidpixel::ConfigReader inConfig;
 if (!inConfig.set(in, "ObjectDetectorParams") ||
     !inConfig.writeToFile("ObjectDetectorParams.json"))
 {
@@ -971,14 +971,14 @@ if (!inConfig.set(in, "ObjectDetectorParams") ||
 }
 
 // Read params from file.
-cr::utils::ConfigReader outConfig;
+rapidpixel::ConfigReader outConfig;
 if (!outConfig.readFromFile("ObjectDetectorParams.json"))
 {
     std::cout << "Can't open config file" << std::endl;
     return false;
 }
 
-cr::detector::ObjectDetectorParams out;
+rapidpixel::ObjectDetectorParams out;
 if (!outConfig.get(out, "ObjectDetectorParams"))
 {
     std::cout << "Can't read params from file" << std::endl;
@@ -1257,10 +1257,10 @@ public:
     bool executeCommand(ObjectDetectorCommand id) override;
 
     /// Perform detection.
-    bool detect(cr::video::Frame& frame) override;
+    bool detect(rapidpixel::Frame& frame) override;
 
     /// Set detection mask.
-    bool setMask(cr::video::Frame mask) override;
+    bool setMask(rapidpixel::Frame mask) override;
 
     /// Decode and execute command.
     bool decodeAndExecuteCommand(uint8_t* data, int size) override;

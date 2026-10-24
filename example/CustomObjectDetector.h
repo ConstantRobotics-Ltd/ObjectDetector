@@ -6,9 +6,7 @@
 
 
 
-namespace cr
-{
-namespace detector
+namespace rapidpixel
 {
 /**
  * @brief Custom object detector class. The class shows how to implement
@@ -105,14 +103,14 @@ public:
      * @param frame Source video frame.
      * @return TRUE if video frame was processed or FALSE if not.
      */
-    bool detect(cr::video::Frame& frame) override;
+    bool detect(rapidpixel::Frame& frame) override;
 
     /**
      * @brief Set detection mask.
      * @param mask Detection mask.
      * @return TRUE if the mask was set or FALSE if not.
      */
-    bool setMask(cr::video::Frame mask) override;
+    bool setMask(rapidpixel::Frame mask) override;
 
     /**
      * @brief Decode and execute command. The method is thread-safe.
@@ -129,5 +127,4 @@ private:
     /// Mutex to protect m_params.
     std::mutex m_paramsMutex;
 };
-}
 }

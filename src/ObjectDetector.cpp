@@ -87,7 +87,7 @@ using FieldTable = std::array<FieldRef, SCALAR_FIELDS_NUMBER>;
 /// Get the table of the scalar fields of ObjectDetectorParams in the order they
 /// are stored in the encoded data (the same order as the bits of the mask).
 /// Encode and decode use the same table: the formats cannot diverge.
-FieldTable makeFieldTable(cr::detector::ObjectDetectorParams& params)
+FieldTable makeFieldTable(rapidpixel::ObjectDetectorParams& params)
 {
     return {{
         {&params.logMode, VALUE_SIZE},
@@ -121,7 +121,7 @@ FieldTable makeFieldTable(cr::detector::ObjectDetectorParams& params)
 /// Get the values of an Object in the order they are stored in the encoded
 /// data. All of them are int or float values of VALUE_SIZE bytes.
 std::array<void*, OBJECT_VALUES_NUMBER> makeObjectTable(
-        cr::detector::Object& obj)
+        rapidpixel::Object& obj)
 {
     return {{&obj.id, &obj.frameId, &obj.type, &obj.width, &obj.height,
              &obj.x, &obj.y, &obj.vX, &obj.vY, &obj.p}};
@@ -131,7 +131,7 @@ std::array<void*, OBJECT_VALUES_NUMBER> makeObjectTable(
 
 /// Get the flags of the params fields which are selected by the mask in the
 /// order of the encoded data. All fields are selected if the mask is nullptr.
-Selection makeSelection(const cr::detector::ObjectDetectorParamsMask* mask)
+Selection makeSelection(const rapidpixel::ObjectDetectorParamsMask* mask)
 {
     if (mask == nullptr)
     {
@@ -258,7 +258,7 @@ bool isEncodableClassNames(const std::vector<std::string>& names)
 
 
 /// Check that the selected strings of the params can be decoded.
-bool isEncodableStrings(const cr::detector::ObjectDetectorParams& params,
+bool isEncodableStrings(const rapidpixel::ObjectDetectorParams& params,
                         const Selection& selected)
 {
     if (selected[INIT_STRING_FIELD] && hasNullCharacter(params.initString))
@@ -297,7 +297,7 @@ size_t fixedSizeOf(const FieldTable& fields, const Selection& selected)
 /// Calculate the size of the encoded selected strings with their terminators,
 /// bytes. The size is calculated as size_t: the strings can be longer than the
 /// buffer.
-size_t stringsSizeOf(const cr::detector::ObjectDetectorParams& params,
+size_t stringsSizeOf(const rapidpixel::ObjectDetectorParams& params,
                      const Selection& selected)
 {
     size_t size = 0;
@@ -350,7 +350,7 @@ size_t writeScalars(uint8_t* data, size_t pos, const FieldTable& fields,
 /// data and return the position after the last of them. The room must be
 /// checked before.
 size_t writeObjects(uint8_t* data, size_t pos,
-                    std::vector<cr::detector::Object>& objects, size_t number)
+                    std::vector<rapidpixel::Object>& objects, size_t number)
 {
     const int counter = static_cast<int>(number);
     std::memcpy(&data[pos], &counter, VALUE_SIZE);
@@ -373,7 +373,7 @@ size_t writeObjects(uint8_t* data, size_t pos,
 /// position after the last of them. The room must be checked before. The
 /// terminators are encoded to recognize the end of a string.
 size_t writeStrings(uint8_t* data, size_t pos,
-                    const cr::detector::ObjectDetectorParams& params,
+                    const rapidpixel::ObjectDetectorParams& params,
                     const Selection& selected)
 {
     if (selected[INIT_STRING_FIELD])
@@ -435,7 +435,7 @@ bool readScalars(const uint8_t* data, int dataSize, int& pos,
 /// number of objects is checked against the rest of the data before the memory
 /// is reserved, so the memory is limited by the size of the data.
 bool readObjects(const uint8_t* data, int dataSize, int& pos,
-                 std::vector<cr::detector::Object>& objects)
+                 std::vector<rapidpixel::Object>& objects)
 {
     if (dataSize - pos < VALUE_SIZE)
     {
@@ -452,7 +452,7 @@ bool readObjects(const uint8_t* data, int dataSize, int& pos,
     objects.reserve(static_cast<size_t>(counter));
     for (int i = 0; i < counter; ++i)
     {
-        cr::detector::Object obj;
+        rapidpixel::Object obj;
         for (void* value : makeObjectTable(obj))
         {
             std::memcpy(value, &data[pos], VALUE_SIZE);
@@ -492,7 +492,7 @@ int findStringLength(const uint8_t* data, int dataSize, int pos)
 /// strings up to the end of the data, the empty name terminates the list.
 bool readStrings(const uint8_t* data, int dataSize, int& pos,
                  const Selection& selected,
-                 cr::detector::ObjectDetectorParams& params)
+                 rapidpixel::ObjectDetectorParams& params)
 {
     if (selected[INIT_STRING_FIELD])
     {
@@ -528,18 +528,18 @@ bool readStrings(const uint8_t* data, int dataSize, int& pos,
 
 
 
-cr::detector::ObjectDetector::~ObjectDetector() = default;
+rapidpixel::ObjectDetector::~ObjectDetector() = default;
 
 
 
-std::string cr::detector::ObjectDetector::getVersion()
+std::string rapidpixel::ObjectDetector::getVersion()
 {
     return OBJECT_DETECTOR_VERSION;
 }
 
 
 
-bool cr::detector::ObjectDetectorParams::encode(
+bool rapidpixel::ObjectDetectorParams::encode(
         uint8_t* data, int bufferSize, int& size,
         ObjectDetectorParamsMask* mask)
 {
@@ -593,7 +593,7 @@ bool cr::detector::ObjectDetectorParams::encode(
 
 
 
-bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
+bool rapidpixel::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
 {
     // Check data size (the header must be complete), data type and version.
     if (data == nullptr || dataSize < PARAMS_HEADER_SIZE)
@@ -666,7 +666,7 @@ bool cr::detector::ObjectDetectorParams::decode(uint8_t* data, int dataSize)
 
 
 
-void cr::detector::ObjectDetector::encodeSetParamCommand(
+void rapidpixel::ObjectDetector::encodeSetParamCommand(
         uint8_t* data, int& size, ObjectDetectorParam id, float value)
 {
     size = 0;
@@ -689,7 +689,7 @@ void cr::detector::ObjectDetector::encodeSetParamCommand(
 
 
 
-void cr::detector::ObjectDetector::encodeCommand(
+void rapidpixel::ObjectDetector::encodeCommand(
         uint8_t* data, int& size, ObjectDetectorCommand id)
 {
     size = 0;
@@ -711,7 +711,7 @@ void cr::detector::ObjectDetector::encodeCommand(
 
 
 
-int cr::detector::ObjectDetector::decodeCommand(
+int rapidpixel::ObjectDetector::decodeCommand(
         uint8_t* data, int size, ObjectDetectorParam& paramId,
         ObjectDetectorCommand& commandId, float& value)
 {

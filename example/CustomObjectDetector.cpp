@@ -109,7 +109,7 @@ bool assignFinite(float& target, float value)
 
 
 /// Check that all params are inside the limits of this example.
-bool isValidParams(const cr::detector::ObjectDetectorParams& params)
+bool isValidParams(const rapidpixel::ObjectDetectorParams& params)
 {
     if (!isInRange(params.logMode, 0, MAX_LOG_MODE) ||
         !isInRange(params.frameBufferSize, 1, MAX_COUNT) ||
@@ -151,22 +151,22 @@ bool isValidParams(const cr::detector::ObjectDetectorParams& params)
 
 
 
-cr::detector::CustomObjectDetector::CustomObjectDetector() = default;
+rapidpixel::CustomObjectDetector::CustomObjectDetector() = default;
 
 
 
-cr::detector::CustomObjectDetector::~CustomObjectDetector() = default;
+rapidpixel::CustomObjectDetector::~CustomObjectDetector() = default;
 
 
 
-std::string cr::detector::CustomObjectDetector::getVersion()
+std::string rapidpixel::CustomObjectDetector::getVersion()
 {
     return CUSTOM_OBJECT_DETECTOR_VERSION;
 }
 
 
 
-bool cr::detector::CustomObjectDetector::initObjectDetector(
+bool rapidpixel::CustomObjectDetector::initObjectDetector(
         ObjectDetectorParams& params)
 {
     // Check params before they are accepted.
@@ -184,7 +184,7 @@ bool cr::detector::CustomObjectDetector::initObjectDetector(
 
 
 
-bool cr::detector::CustomObjectDetector::setParam(
+bool rapidpixel::CustomObjectDetector::setParam(
         ObjectDetectorParam id, float value)
 {
     const std::lock_guard<std::mutex> lock(m_paramsMutex);
@@ -305,7 +305,7 @@ bool cr::detector::CustomObjectDetector::setParam(
 
 
 
-float cr::detector::CustomObjectDetector::getParam(ObjectDetectorParam id)
+float rapidpixel::CustomObjectDetector::getParam(ObjectDetectorParam id)
 {
     const std::lock_guard<std::mutex> lock(m_paramsMutex);
 
@@ -413,7 +413,7 @@ float cr::detector::CustomObjectDetector::getParam(ObjectDetectorParam id)
 
 
 
-void cr::detector::CustomObjectDetector::getParams(
+void rapidpixel::CustomObjectDetector::getParams(
         ObjectDetectorParams& params)
 {
     const std::lock_guard<std::mutex> lock(m_paramsMutex);
@@ -428,8 +428,8 @@ void cr::detector::CustomObjectDetector::getParams(
 
 
 
-std::vector<cr::detector::Object>
-cr::detector::CustomObjectDetector::getObjects()
+std::vector<rapidpixel::Object>
+rapidpixel::CustomObjectDetector::getObjects()
 {
     const std::lock_guard<std::mutex> lock(m_paramsMutex);
     if (!m_params.enable)
@@ -442,7 +442,7 @@ cr::detector::CustomObjectDetector::getObjects()
 
 
 
-bool cr::detector::CustomObjectDetector::executeCommand(
+bool rapidpixel::CustomObjectDetector::executeCommand(
         ObjectDetectorCommand id)
 {
     const std::lock_guard<std::mutex> lock(m_paramsMutex);
@@ -475,21 +475,21 @@ bool cr::detector::CustomObjectDetector::executeCommand(
 
 
 
-bool cr::detector::CustomObjectDetector::detect(cr::video::Frame&)
+bool rapidpixel::CustomObjectDetector::detect(rapidpixel::Frame&)
 {
     return true;
 }
 
 
 
-bool cr::detector::CustomObjectDetector::setMask(cr::video::Frame)
+bool rapidpixel::CustomObjectDetector::setMask(rapidpixel::Frame)
 {
     return true;
 }
 
 
 
-bool cr::detector::CustomObjectDetector::decodeAndExecuteCommand(
+bool rapidpixel::CustomObjectDetector::decodeAndExecuteCommand(
         uint8_t* data, int size)
 {
     // Decode command. The decoder checks the size, the version and the IDs.

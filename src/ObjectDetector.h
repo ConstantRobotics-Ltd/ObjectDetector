@@ -7,7 +7,7 @@
 
 
 
-namespace cr::detector
+namespace rapidpixel
 {
 /**
  * @brief Object data structure.
@@ -459,7 +459,7 @@ public:
      * formats supported by Frame object.
      * @return TRUE if video frame was processed or FALSE if not.
      */
-    virtual bool detect(cr::video::Frame& frame) = 0;
+    virtual bool detect(rapidpixel::Frame& frame) = 0;
 
     /**
      * @brief Set detection mask. Detector omits image segments, where
@@ -468,7 +468,7 @@ public:
      * must support pixel formats for mask: GRAY, NV12, NV21, YV12 and YU12.
      * @return TRUE if video detection mask was set or FALSE if not.
      */
-    virtual bool setMask(cr::video::Frame mask) = 0;
+    virtual bool setMask(rapidpixel::Frame mask) = 0;
 
     /**
      * @brief Encode set param command.
@@ -569,4 +569,16 @@ protected:
      */
     ObjectDetector& operator= (ObjectDetector&& src) = default;
 };
+}
+
+
+
+// Compatibility: the names of namespace rapidpixel are also available in
+// namespace cr::detector.
+namespace cr
+{
+namespace detector
+{
+using namespace ::rapidpixel;
+}
 }

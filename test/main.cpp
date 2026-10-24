@@ -17,7 +17,7 @@
 
 namespace
 {
-namespace det = cr::detector;
+namespace det = rapidpixel;
 
 using Params = det::ObjectDetectorParams;
 using Mask = det::ObjectDetectorParamsMask;
@@ -1567,7 +1567,7 @@ bool jsonReadWriteTest()
     in.enable = false;
 
     // Write params to string and read them back.
-    cr::utils::ConfigReader inConfig;
+    rapidpixel::ConfigReader inConfig;
     if (!inConfig.set(in, "ObjectDetectorParams"))
     {
         return fail("Can't set params");
@@ -1577,7 +1577,7 @@ bool jsonReadWriteTest()
     {
         return fail("Can't write params to string");
     }
-    cr::utils::ConfigReader textConfig;
+    rapidpixel::ConfigReader textConfig;
     Params fromText;
     if (!textConfig.readFromString(text) ||
         !textConfig.get(fromText, "ObjectDetectorParams"))
@@ -1596,7 +1596,7 @@ bool jsonReadWriteTest()
     {
         return fail("Can't write params to file");
     }
-    cr::utils::ConfigReader outConfig;
+    rapidpixel::ConfigReader outConfig;
     if (!outConfig.readFromFile(fileName))
     {
         return fail("Can't open config file");
@@ -1626,7 +1626,7 @@ bool jsonReadWriteTest()
     };
     for (const std::string& document : documents)
     {
-        cr::utils::ConfigReader config;
+        rapidpixel::ConfigReader config;
         Params result = snapshot;
         if (config.readFromString(document) &&
             config.get(result, "ObjectDetectorParams"))
@@ -1653,7 +1653,7 @@ bool jsonReadWriteTest()
             return fail("Unexpected JSON text");
         }
         changed.replace(pos, replacement.first.size(), replacement.second);
-        cr::utils::ConfigReader config;
+        rapidpixel::ConfigReader config;
         Params result = snapshot;
         if (config.readFromString(changed) &&
             config.get(result, "ObjectDetectorParams"))
