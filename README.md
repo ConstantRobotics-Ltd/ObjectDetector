@@ -67,7 +67,7 @@
 | 1.5.0   | 26.09.2023   | - Signature of getParams(...) method changed.                |
 | 1.5.1   | 13.11.2023   | - Frame class updated.                                       |
 | 1.6.1   | 14.12.2023   | - Virtual destructor added.<br />- Frame class updated.      |
-| 1.7.0   | 08.01.2024   | - List of objects class names added to ObjectDetectorParams.<br />- Data structures updated.<br />- Added automatic linux build check based on GitHub Actions. |
+| 1.7.0   | 08.01.2024   | - List of objects class names added to ObjectDetectorParams.<br />- Data structures updated. |
 | 1.7.1   | 25.03.2024   | - Frame class updated.<br />- ConfigReader class updated.<br />- Documentation updated. |
 | 1.7.2   | 20.05.2024   | - Frame class updated.<br />- ConfigReader class updated.<br />- Documentation updated. |
 | 1.7.3   | 23.07.2024   | - CMake structure updated.                                   |
