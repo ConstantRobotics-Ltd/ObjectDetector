@@ -50,6 +50,8 @@
 
 **ObjectDetector** C++ library provides standard interface as well as defines data structures and rules for different object detectors (motion detectors, events detectors, neural networks etc.). **ObjectDetector** interface class does not do anything, just provides interface, defines data structures and provides methods to encode/decode commands and encode/decode (serialize/deserialize) parameters. Different object detector classes inherit interface form **ObjectDetector** C++ class. **ObjectDetector.h** file contains [ObjectDetectorCommand](#objectdetectorcommand-enum) enum (provides enum of action commands), [ObjectDetectorParam](#objectdetectorparam-enum) enum (provides enum of params), [ObjectDetectorParams](#objectdetectorparams-class-description) class (contains list of params) and includes [ObjectDetector](#objectdetector-class-declaration) class declaration. All object detectors should include params and commands listed in **ObjectDetector.h** file. **ObjectDetector** class depends on two external libraries: [Frame](https://rapidpixel.constantrobotics.com/docs/Service/Frame.html) (video frame data structure) and [ConfigReader](https://rapidpixel.constantrobotics.com/docs/Service/ConfigReader.html) (provides methods to read/write JSON config files). The repositories of these libraries must be placed next to the repository of **ObjectDetector** (see [Build and connect to your project](#build-and-connect-to-your-project) section). It uses C++17 standard.
 
+**ObjectDetector** is general-purpose software: it is not tied to any sector or application, and the developer of a program decides what the program does with it.
+
 
 
 # Versions
