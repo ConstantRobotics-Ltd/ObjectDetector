@@ -1040,7 +1040,7 @@ if (!outConfig.get(out, "ObjectDetectorParams"))
 
 ## Build stand alone
 
-The repository does not contain sub-repositories. The libraries **ObjectDetector** depends on (**Frame** and **ConfigReader**) must be cloned into the same folder as **ObjectDetector**. The folder structure must be:
+The repository does not contain sub-repositories. The libraries **ObjectDetector** depends on (**Frame** and **ConfigReader**) must be placed in the same folder as **ObjectDetector**: copy their folders, for example from the folder **modules** of the RapidPixel SDK. The folder structure must be:
 
 ```bash
 <work folder>
@@ -1049,12 +1049,9 @@ The repository does not contain sub-repositories. The libraries **ObjectDetector
     ConfigReader
 ```
 
-Typical commands to build the library, the test application and the example (use the URLs of the repositories provided to you):
+Typical commands to build the library, the test application and the example:
 
 ```bash
-git clone <ObjectDetector repository URL>
-git clone <Frame repository URL>
-git clone <ConfigReader repository URL>
 cd ObjectDetector
 mkdir build
 cd build
@@ -1092,17 +1089,7 @@ src
     yourLib.cpp
 ```
 
-You can add the repository **ObjectDetector** and the repositories of the libraries it depends on as sub-repositories by commands:
-
-```bash
-cd <your repository folder>
-git submodule add <Frame repository URL> 3rdparty/Frame
-git submodule add <ConfigReader repository URL> 3rdparty/ConfigReader
-git submodule add <ObjectDetector repository URL> 3rdparty/ObjectDetector
-git submodule update --init --recursive
-```
-
-In your repository folder the folder **3rdparty** will be created which contains the files of **Frame**, **ConfigReader** and **ObjectDetector** repositories. The structure of your repository:
+Create folder **3rdparty** in your repository and copy the folders of the libraries **Frame**, **ConfigReader** and **ObjectDetector** there (for example from the folder **modules** of the RapidPixel SDK). The structure of your repository:
 
 ```bash
 CMakeLists.txt
