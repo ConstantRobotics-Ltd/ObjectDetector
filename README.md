@@ -4,7 +4,7 @@
 
 # **ObjectDetector interface C++ library**
 
-**v1.8.1**
+**v1.8.2**
 
 
 
@@ -75,6 +75,7 @@
 | 1.7.3   | 23.07.2024   | - CMake structure updated.                                   |
 | 1.8.0   | 02.10.2026   | - Submodules updated.<br />- Compiler warnings fixed.        |
 | 1.8.1   | 17.10.2026   | - Git submodules removed: the repositories of Frame and ConfigReader must be placed next to the repository of the library.<br />- ObjectDetectorParams::decode(...) checks the size of data, the number of objects and the strings, rejects data with bytes after the last field and does not change the object if the data is rejected.<br />- ObjectDetectorParams::encode(...) checks the buffer size for all fields including the strings, encodes the objects which fit into the buffer completely, rejects null characters in the strings and the empty class names inside the list.<br />- ObjectDetector::decodeCommand(...) checks the exact size of the command and the range of the ID and returns -1 for all errors.<br />- Null pointer arguments of encode and decode methods are rejected.<br />- Example of object detector implementation completed: all methods are implemented, values are validated, methods are thread-safe.<br />- Compiler warnings fixed, strict warnings and hardening options added to CMake files, test application extended.<br />- Documentation updated. |
+| 1.8.2   | 21.11.2026   | - CMake: hardening flags are checked with -Werror, the build with Clang 15 for AArch64 has no warnings. |
 
 
 
@@ -202,7 +203,7 @@ std::cout << "ObjectDetector class version: " <<
 Console output:
 
 ```bash
-ObjectDetector class version: 1.8.1
+ObjectDetector class version: 1.8.2
 ```
 
 
